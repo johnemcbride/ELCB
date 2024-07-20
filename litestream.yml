@@ -1,0 +1,9 @@
+access-key-id: ${AWS_ACCESS_KEY_ID}
+secret-access-key: ${AWS_SECRET_ACCESS_KEY}
+dbs:
+  - path: /tmp/db.sqlite3
+    replicas:
+      - type: s3
+        url: ${REPLICA_URL}
+        region: eu-west-2
+

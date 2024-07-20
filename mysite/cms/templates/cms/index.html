@@ -1,0 +1,39 @@
+{% load static %}
+{% load random_numbers %}
+
+<link rel="stylesheet" href="{% static 'cms/out.css' %}">
+<script defer src="{% static 'cms/alpine.js' %}"></script>
+</head>
+
+<div class="flex-row shadow text-pretty rounded px-1 mx-1 my-1 align-middle text-blue-300 font-mono">
+
+    <p class="text-center">Learning Log</p>
+</div>
+
+
+
+    <p>
+        Learning Log helps you keep track of your learning, for any topic you're
+        learning about.
+    </p>
+
+    
+    {% for topic in topics %}
+
+    <div class="max-w-sm w-fit my-5 mx-5 lg:max-w-full lg:flex">
+    
+        <div class="border-r border-b border-l border-gray-900 lg:border-l-0 lg:border-t lg:border-gray-400 bg-white rounded-b lg:rounded-b-none lg:rounded-r p-4 flex flex-col justify-between leading-normal">
+          <div class="mb-8">
+            <p class="text-sm text-gray-600 flex items-center">
+            
+              {{topic.text|linebreaks }}
+            </p>
+          </div>
+          
+        </div>
+      </div>
+    {% endfor %}
+
+  
+</div>
+
