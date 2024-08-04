@@ -1,3 +1,10 @@
+# Todo
+
+- [ ] Deploy django on t4g with cloudfront on api.eastlondon...
+
+# To run local commands
+podman exec -it elcb_backend_1 /bin/bash 
+
 # Set up fresh codespace
 
 ```

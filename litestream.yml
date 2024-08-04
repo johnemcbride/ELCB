@@ -6,4 +6,3 @@ dbs:
       - type: s3
         url: ${REPLICA_URL}
         region: eu-west-2
-

@@ -2,7 +2,6 @@
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { InfraStack } from '../lib/infra-stack';
-import { PipelineStack } from '../lib/pipeline-stack';
 
 const app = new cdk.App();
 // new InfraStack(app, 'InfraStack', {
@@ -20,9 +19,9 @@ const app = new cdk.App();
 
 /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 // });
-new PipelineStack(app, 'PipelineStack', {
+new InfraStack(app, 'InfraStack', {
   env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: process.env.CDK_DEFAULT_REGION,
+    account: process.env.AWS_DEFAULT_ACCOUNT,
+    region: 'eu-west-2',
   },
 });

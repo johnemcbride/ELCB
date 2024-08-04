@@ -1,251 +1,105 @@
-import * as cdk from "aws-cdk-lib";
-import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
-import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
-import * as logs from "aws-cdk-lib/aws-logs";
-import * as apigateway from "aws-cdk-lib/aws-apigateway";
-import * as iam from "aws-cdk-lib/aws-iam";
-import { Construct } from "constructs";
-import * as python from "@aws-cdk/aws-lambda-python-alpha";
-import { LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
-import * as s3 from "aws-cdk-lib/aws-s3";
-import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import path = require("path");
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
+import * as ecr from 'aws-cdk-lib/aws-ecr';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
+import * as cloudfront_origins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as certificatemanager from 'aws-cdk-lib/aws-certificatemanager';
+import * as route53 from 'aws-cdk-lib/aws-route53';
+import * as targets from 'aws-cdk-lib/aws-route53-targets';
 
-interface InfraStackProps extends cdk.StackProps {
-  environmentName: string;
-}
-
-export class InfraStack extends cdk.Stack {
-  public readonly migrationLambda: lambda.Function;
-  public readonly housekeepingLambda: lambda.Function;
-  public readonly bucket: s3.Bucket;
-
-  constructor(scope: Construct, id: string, props: InfraStackProps) {
+export class MyCloudfrontEcsStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const prefix = props.environmentName;
-
-    this.bucket = new s3.Bucket(this, `DjangoBucket`, {
-      versioned: true,
+    // VPC
+    const vpc = new ec2.Vpc(this, 'MyVpc', {
+      maxAzs: 2
     });
 
-    const pythonDependencies = new python.PythonLayerVersion(this, `MyLayer`, {
-      entry: "../layer/",
-      compatibleRuntimes: [lambda.Runtime.PYTHON_3_9],
+    // ECS Cluster
+    const cluster = new ecs.Cluster(this, 'MyCluster', {
+      vpc: vpc
     });
 
-    const versionTable = new dynamodb.Table(this, `VersionTable`, {
-      partitionKey: { name: "domainName", type: dynamodb.AttributeType.STRING },
-      sortKey: { name: "version", type: dynamodb.AttributeType.NUMBER },
+    // ECS Task Definition
+    const taskDefinition = new ecs.Ec2TaskDefinition(this, 'TaskDef');
+
+    const container = taskDefinition.addContainer('MyContainer', {
+      image: ecs.ContainerImage.fromRegistry('amazon/amazon-ecs-sample'),
+      memoryLimitMiB: 512,
     });
 
-    const sessionsTable = new dynamodb.Table(this, `Sessions`, {
-      partitionKey: {
-        name: "session_key",
-        type: dynamodb.AttributeType.STRING,
-      },
+    container.addPortMappings({
+      containerPort: 80,
+      protocol: ecs.Protocol.TCP,
     });
 
-    const fn = new lambda.Function(this, `DjangoServerless`, {
-      tracing: lambda.Tracing.ACTIVE,
-      runtime: lambda.Runtime.PYTHON_3_9,
-      handler: "mysite.wsgi.lambda_handler",
-      code: lambda.Code.fromAsset("../mysite"),
-      memorySize: 1024,
-      timeout: cdk.Duration.seconds(300),
-      layers: [pythonDependencies],
-      environment: {
-        BUCKET_NAME: this.bucket.bucketName,
-        TABLE_NAME: versionTable.tableName,
-        DJANGO_LOG_LEVEL: "DEBUG",
-        DYNAMODB_SESSIONS_TABLE_NAME: sessionsTable.tableName,
-        DEBUG: "False",
-      },
+    // ECS Service
+    const ecsService = new ecs.Ec2Service(this, 'Service', {
+      cluster,
+      taskDefinition,
     });
 
-    // Grant permissions to access Secrets Manager secrets
-    const secretsManagerPolicy = new iam.PolicyStatement({
-      actions: ["secretsmanager:GetSecretValue"],
-      resources: [
-        `arn:aws:secretsmanager:${this.region}:${this.account}:secret:SUPER_USEREMAIL*`,
-        `arn:aws:secretsmanager:${this.region}:${this.account}:secret:SUPER_USERNAME*`,
-        `arn:aws:secretsmanager:${this.region}:${this.account}:secret:SUPER_USERPASSWORD*`,
-        // Add more secrets as needed
-      ],
+    // Security Group for ECS Service
+    const ecsSecurityGroup = new ec2.SecurityGroup(this, 'EcsSecurityGroup', {
+      vpc,
+      description: 'Allow HTTP and HTTPS from CloudFront only',
+      allowAllOutbound: true
     });
 
-    fn.role?.attachInlinePolicy(
-      new iam.Policy(this, "SecretsManagerAccessPolicy", {
-        statements: [secretsManagerPolicy],
-      })
+    // Add rules to allow traffic only from CloudFront managed prefix list
+    const cloudfrontPrefixListId = 'com.amazonaws.global.cloudfront.origin-facing'; // CloudFront origin-facing managed prefix list
+
+    ecsSecurityGroup.addIngressRule(
+      ec2.Peer.prefixList(cloudfrontPrefixListId),
+      ec2.Port.tcp(80),
+      'Allow HTTP traffic from CloudFront'
     );
 
-    const accessLogGroup = new logs.LogGroup(this, `AccessLogGroup`, {
-      logGroupName: `/aws/api-gateway/cms-${prefix}`,
-      retention: logs.RetentionDays.ONE_WEEK,
-    });
-
-    const apiGateway = new LambdaRestApi(this, `${prefix}CmsApi`, {
-      handler: fn,
-      proxy: true,
-      deployOptions: {
-        stageName: `${prefix}`,
-        accessLogFormat: apigateway.AccessLogFormat.custom(
-          JSON.stringify({
-            requestId: apigateway.AccessLogField.contextRequestId(),
-            status: apigateway.AccessLogField.contextStatus(),
-            time: apigateway.AccessLogField.contextRequestTime(),
-            path: apigateway.AccessLogField.contextResourcePath(),
-            protocol: apigateway.AccessLogField.contextProtocol(),
-            responseLength: apigateway.AccessLogField.contextResponseLength(),
-            sourceIp: apigateway.AccessLogField.contextIdentitySourceIp(),
-            error: apigateway.AccessLogField.contextErrorMessageString(),
-            method: apigateway.AccessLogField.contextHttpMethod(),
-            contextPath: apigateway.AccessLogField.contextPath(),
-            errorType:
-              apigateway.AccessLogField.contextRequestOverrideHeader.toString(),
-            "error.message": "$context.error.message", // The error message returned by API Gateway.
-            httpMethod: "$context.httpMethod", // The HTTP method used. Valid values include: DELETE, GET, HEAD, OPTIONS, PATCH, POST, and PUT.
-            "identity.sourceIp": "$context.identity.sourceIp", // The IP address of the client that sent the request.
-            "integration.error": "$context.integration.error", // The error message returned by the integration.
-            "integration.integrationStatus":
-              "$context.integration.integrationStatus", // The status code returned by the integration.
-            "integration.latency": "$context.integration.latency", // The time between when API Gateway receives a request from a client and when it returns a response to the client. The latency includes the integration latency and other API Gateway overhead.
-            "integration.requestId": "$context.integration.requestId", // The ID of the request sent to the integration.
-            "integration.status": "$context.integration.status", // The HTTP status code that is returned by the integration back to API Gateway.
-            responseLatency: "$context.responseLatency", // The time between when API Gateway receives a request from a client and when it returns a response to the client. The latency does not include the integration latency.
-            stage: "$context.stage", // The name of the API Gateway stage that processes the request.
-          })
-        ),
-        accessLogDestination: new apigateway.LogGroupLogDestination(
-          accessLogGroup
-        ),
-      },
-      cloudWatchRole: true,
-      binaryMediaTypes: [
-        "image/*",
-        "*font*",
-        "application/font-woff",
-        "font/woff2",
-        "font/*",
-        "*/*",
-      ],
-    });
-
-    versionTable.grantReadWriteData(fn);
-    sessionsTable.grantReadWriteData(fn); // todo restrict
-
-    this.bucket.grantReadWrite(fn);
-
-    const origin = new origins.HttpOrigin(
-      `${apiGateway.restApiId}.execute-api.${this.region}.${this.urlSuffix}`,
-      {
-        originPath: `/${prefix}`,
-      }
+    ecsSecurityGroup.addIngressRule(
+      ec2.Peer.prefixList(cloudfrontPrefixListId),
+      ec2.Port.tcp(443),
+      'Allow HTTPS traffic from CloudFront'
     );
 
-    const originAccessIdentity = new cloudfront.OriginAccessIdentity(
-      this,
-      `${prefix}OAI`,
-      {
-        comment: `OAI for ${this.bucket.bucketName}`,
-      }
-    );
+    ecsService.connections.addSecurityGroup(ecsSecurityGroup);
 
-    const media = new origins.S3Origin(this.bucket, {
-      originPath: "/media",
-      originAccessIdentity: originAccessIdentity,
+    // Hosted Zone
+    const hostedZone = route53.HostedZone.fromLookup(this, 'HostedZone', { domainName: 'your.domain.com' });
+
+    // Certificate
+    const certificate = new certificatemanager.DnsValidatedCertificate(this, 'Certificate', {
+      domainName: 'your.domain.com',
+      hostedZone: hostedZone,
     });
 
-    this.bucket.grantRead(originAccessIdentity);
-
-    const distribution = new cloudfront.Distribution(this, `MyDist`, {
+    // CloudFront Distribution
+    const distribution = new cloudfront.Distribution(this, 'MyDistribution', {
       defaultBehavior: {
-        origin: origin,
-        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
-        cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-        originRequestPolicy:
-          cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-        // recommended for api agewatey - tryied all, and  api gateway chokes
-        // responseHeadersPolicy:
-        //   cloudfront.ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS,
+        origin: new cloudfront_origins.HttpOrigin(`${ecsService.loadBalancer.loadBalancerDnsName}`, {
+          customHeaders: {
+            'X-Forwarded-Proto': 'https',
+          },
+        }),
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       },
-      additionalBehaviors: {
-        "/media/*": {
-          // Use your own path pattern
-          origin: media,
-          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
-          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-          originRequestPolicy:
-            cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-        },
-      },
-      enableLogging: true,
+      domainNames: ['beta.eastlondoncommunity.band'],
+      certificate: certificate,
     });
 
-    fn.addEnvironment(
-      "CLOUDFRONT_DISTRIBUTION_DOMAINNAME",
-      distribution.distributionDomainName
-    );
-
-    fn.addEnvironment(
-      "CLOUDFRONT_DISTRIBUTION_ID",
-      distribution.distributionId
-    );
-
-    // Attach permissions to Lambda to invalidate CloudFront cache
-    const invalidationPolicy = new iam.PolicyStatement({
-      actions: ["cloudfront:CreateInvalidation"],
-      resources: [
-        `arn:aws:cloudfront::${this.account}:distribution/${distribution.distributionId}`,
-      ],
+    // Route53 Alias Record for CloudFront
+    new route53.ARecord(this, 'AliasRecord', {
+      zone: hostedZone,
+      target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution)),
+      recordName: 'your',
     });
 
-    fn.addToRolePolicy(invalidationPolicy);
-
-    // Define the migration Lambda function with the pre-created role
-    this.migrationLambda = new lambda.Function(this, "MigrationLambda", {
-      tracing: lambda.Tracing.ACTIVE,
-      runtime: lambda.Runtime.PYTHON_3_9,
-      handler: "migrate_function.handler",
-      memorySize: 1024,
-      timeout: cdk.Duration.seconds(300),
-      code: lambda.Code.fromAsset(path.join(__dirname, "lambda")),
-      environment: {
-        API_ENDPOINT: `https://${apiGateway.restApiId}.execute-api.${this.region}.amazonaws.com/${prefix}`,
-      },
-    });
-
-    // housekeeping
-    this.housekeepingLambda = new lambda.Function(this, "HousekeepingLambda", {
-      runtime: lambda.Runtime.PYTHON_3_9,
-      handler: "housekeeping.handler",
-      memorySize: 1024,
-      timeout: cdk.Duration.seconds(300),
-      code: lambda.Code.fromAsset(path.join(__dirname, "housekeeping")),
-      environment: {
-        BUCKET_NAME: this.bucket.bucketName,
-        TABLE_NAME: versionTable.tableName,
-      },
-    });
-
-    versionTable.grantReadWriteData(this.housekeepingLambda);
-    this.bucket.grantReadWrite(this.housekeepingLambda);
-
-    const lambda_cw_event = new cdk.aws_events.Rule(this, "HouseKeeping", {
-      description: "Clean up data once an hour for django thing",
-      enabled: true,
-      schedule: cdk.aws_events.Schedule.rate(cdk.Duration.hours(1)),
-      targets: [
-        new cdk.aws_events_targets.LambdaFunction(this.housekeepingLambda),
-      ],
-    });
-
-    new cdk.CfnOutput(this, `CloudFrontWWW`, {
-      value: `https://` + distribution.distributionDomainName,
+    // Output the CloudFront domain name
+    new cdk.CfnOutput(this, 'CloudFrontURL', {
+      value: distribution.domainName,
     });
   }
 }

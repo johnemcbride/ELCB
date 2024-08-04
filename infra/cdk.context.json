@@ -1,0 +1,11 @@
+{
+  "availability-zones:account=228447865234:region=eu-west-2": [
+    "eu-west-2a",
+    "eu-west-2b",
+    "eu-west-2c"
+  ],
+  "hosted-zone:account=228447865234:domainName=eastlondoncommunity.band:region=eu-west-2": {
+    "Id": "/hostedzone/Z05660251XF94QP87NX3",
+    "Name": "eastlondoncommunity.band."
+  }
+}
