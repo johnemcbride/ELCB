@@ -1,5 +1,8 @@
-access-key-id: ${AWS_ACCESS_KEY_ID}
-secret-access-key: ${AWS_SECRET_ACCESS_KEY}
+logging:
+  level: debug
+  type: text
+  stderr: false
+
 dbs:
   - path: /tmp/db.sqlite3
     replicas:

@@ -36,6 +36,7 @@ aws-sso-util configure profile default
 aws-export-credentials --env-export
 #or
 eval "$(aws-export-credentials --env-export)"
+eval "$(aws-export-credentials --profile elcb --env-export)"
 cd infra
 npm i
 npm i -g cdk
