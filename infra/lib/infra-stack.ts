@@ -1,105 +1,134 @@
-import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-import * as ec2 from 'aws-cdk-lib/aws-ec2';
-import * as ecs from 'aws-cdk-lib/aws-ecs';
-import * as ecr from 'aws-cdk-lib/aws-ecr';
-import * as iam from 'aws-cdk-lib/aws-iam';
-import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
-import * as cloudfront_origins from 'aws-cdk-lib/aws-cloudfront-origins';
-import * as certificatemanager from 'aws-cdk-lib/aws-certificatemanager';
-import * as route53 from 'aws-cdk-lib/aws-route53';
-import * as targets from 'aws-cdk-lib/aws-route53-targets';
+import * as cdk from "aws-cdk-lib";
+import { Construct } from "constructs";
+import * as ec2 from "aws-cdk-lib/aws-ec2";
+import * as iam from "aws-cdk-lib/aws-iam";
+import * as autoscaling from "aws-cdk-lib/aws-autoscaling";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as targets from "aws-cdk-lib/aws-events-targets";
+import * as events from "aws-cdk-lib/aws-events";
 
-export class MyCloudfrontEcsStack extends cdk.Stack {
+export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    const replicaUrl = "s3://johnbucket1a1a1a/db.sqlite3"; // Define your S3 bucket name here
+    const s3BucketName = "johnbucket1a1a1a"; // Define your S3 bucket name here
+
     // VPC
-    const vpc = new ec2.Vpc(this, 'MyVpc', {
-      maxAzs: 2
+    const vpc = new ec2.Vpc(this, "MyVpc", {
+      maxAzs: 2,
+      subnetConfiguration: [
+        {
+          subnetType: ec2.SubnetType.PUBLIC,
+          name: "PublicSubnet",
+        },
+      ],
     });
 
-    // ECS Cluster
-    const cluster = new ecs.Cluster(this, 'MyCluster', {
-      vpc: vpc
-    });
-
-    // ECS Task Definition
-    const taskDefinition = new ecs.Ec2TaskDefinition(this, 'TaskDef');
-
-    const container = taskDefinition.addContainer('MyContainer', {
-      image: ecs.ContainerImage.fromRegistry('amazon/amazon-ecs-sample'),
-      memoryLimitMiB: 512,
-    });
-
-    container.addPortMappings({
-      containerPort: 80,
-      protocol: ecs.Protocol.TCP,
-    });
-
-    // ECS Service
-    const ecsService = new ecs.Ec2Service(this, 'Service', {
-      cluster,
-      taskDefinition,
-    });
-
-    // Security Group for ECS Service
-    const ecsSecurityGroup = new ec2.SecurityGroup(this, 'EcsSecurityGroup', {
+    // Security Group
+    const securityGroup = new ec2.SecurityGroup(this, "SecurityGroup", {
       vpc,
-      description: 'Allow HTTP and HTTPS from CloudFront only',
-      allowAllOutbound: true
+      description: "Allow ssh access to ec2 instances",
+      allowAllOutbound: true,
     });
-
-    // Add rules to allow traffic only from CloudFront managed prefix list
-    const cloudfrontPrefixListId = 'com.amazonaws.global.cloudfront.origin-facing'; // CloudFront origin-facing managed prefix list
-
-    ecsSecurityGroup.addIngressRule(
-      ec2.Peer.prefixList(cloudfrontPrefixListId),
+    securityGroup.addIngressRule(
+      ec2.Peer.anyIpv4(),
       ec2.Port.tcp(80),
-      'Allow HTTP traffic from CloudFront'
+      "allow http access from the world"
+    );
+    securityGroup.addIngressRule(
+      ec2.Peer.ipv4("3.8.37.24/29"),
+      ec2.Port.tcp(22),
+      "allow EC2 Instance Connect"
     );
 
-    ecsSecurityGroup.addIngressRule(
-      ec2.Peer.prefixList(cloudfrontPrefixListId),
-      ec2.Port.tcp(443),
-      'Allow HTTPS traffic from CloudFront'
-    );
-
-    ecsService.connections.addSecurityGroup(ecsSecurityGroup);
-
-    // Hosted Zone
-    const hostedZone = route53.HostedZone.fromLookup(this, 'HostedZone', { domainName: 'your.domain.com' });
-
-    // Certificate
-    const certificate = new certificatemanager.DnsValidatedCertificate(this, 'Certificate', {
-      domainName: 'your.domain.com',
-      hostedZone: hostedZone,
-    });
-
-    // CloudFront Distribution
-    const distribution = new cloudfront.Distribution(this, 'MyDistribution', {
-      defaultBehavior: {
-        origin: new cloudfront_origins.HttpOrigin(`${ecsService.loadBalancer.loadBalancerDnsName}`, {
-          customHeaders: {
-            'X-Forwarded-Proto': 'https',
-          },
+    // IAM Role
+    const role = new iam.Role(this, "InstanceRole", {
+      assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          "AmazonEC2ContainerRegistryReadOnly"
+        ),
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          "AmazonSSMManagedInstanceCore"
+        ),
+        iam.ManagedPolicy.fromAwsManagedPolicyName("EC2InstanceConnect"), // Add this managed policy
+      ],
+      inlinePolicies: {
+        AssociateAddressPolicy: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              actions: ["ec2:AssociateAddress"],
+              resources: ["*"], // You can specify the specific resource if needed
+            }),
+          ],
         }),
-        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+
+        S3AccessPolicy: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              actions: ["s3:GetObject", "s3:PutObject", "s3:ListBucket"],
+              resources: [
+                `arn:aws:s3:::${s3BucketName}`,
+                `arn:aws:s3:::${s3BucketName}/*`,
+              ],
+            }),
+          ],
+        }),
       },
-      domainNames: ['beta.eastlondoncommunity.band'],
-      certificate: certificate,
     });
 
-    // Route53 Alias Record for CloudFront
-    new route53.ARecord(this, 'AliasRecord', {
-      zone: hostedZone,
-      target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution)),
-      recordName: 'your',
+    // Allocate an Elastic IP and associate it with the instance
+    const eip = new ec2.CfnEIP(this, "EIP");
+    // User Data script to install Docker and run the container
+    const userDataScript = `#!/bin/bash
+    sudo yum update -y
+    sudo amazon-linux-extras install docker -y
+    sudo service docker start
+    sudo usermod -a -G docker ec2-user
+    sudo $(aws ecr get-login --no-include-email --region ${this.region})
+    aws ecr get-login-password --region eu-west-2  | docker login --username AWS --password-stdin 984617344736.dkr.ecr.eu-west-2.amazonaws.com
+    docker pull 984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest
+    docker run -d -p 80:8000 \
+      -e LITESTREAM_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+      -e LITESTREAM_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+      -e AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN \
+      -e AWS_REGION=eu-west-2 \
+      -e REPLICA_URL=${replicaUrl}\
+      984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest
+    # Associate Elastic IP
+    INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
+    aws ec2 associate-address --instance-id $INSTANCE_ID --allocation-id ${eip.attrAllocationId} --region ${this.region}
+    `;
+
+    const ami = ec2.MachineImage.genericLinux({
+      "eu-west-2": "ami-07eac86c1aa994cde", // Replace with the actual AMI ID
+    });
+    // const instance = new ec2.Instance(this, "Instance", {
+    //   vpc,
+    //   instanceType: new ec2.InstanceType("t4g.micro"),
+    //   machineImage: ami,
+    //   securityGroup,
+    //   role,
+    //   userData: ec2.UserData.custom(userDataScript),
+    //   vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC }, // Ensure the instance is in a public subnet
+    // });
+
+    // Auto Scaling Group
+    const asg = new autoscaling.AutoScalingGroup(this, "ASG", {
+      vpc,
+      instanceType: new ec2.InstanceType("t4g.micro"),
+      machineImage: ami,
+      securityGroup,
+      role,
+      userData: ec2.UserData.custom(userDataScript),
+      minCapacity: 1,
+      maxCapacity: 1,
+      vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC }, // Ensure the instances are in public subnets
     });
 
-    // Output the CloudFront domain name
-    new cdk.CfnOutput(this, 'CloudFrontURL', {
-      value: distribution.domainName,
+    new cdk.CfnOutput(this, "EIP_Output", {
+      value: eip.attrPublicIp,
     });
   }
 }
