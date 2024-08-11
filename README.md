@@ -3,7 +3,8 @@
 - [ ] Deploy django on t4g with cloudfront on api.eastlondon...
 
 # To run local commands
-podman exec -it elcb_backend_1 /bin/bash 
+
+podman exec -it elcb_backend_1 /bin/bash
 
 # Set up fresh codespace
 
@@ -73,3 +74,13 @@ brew install capstone.rb
 ```
 
 # To install
+
+aws ecr get-login-password --region eu-west-2 --profile elcb | docker login --username AWS --password-stdin 984617344736.dkr.ecr.eu-west-2.amazonaws.com
+docker build -t elcb . --load
+docker tag elcb:latest 984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest
+podman push 984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest
+
+aws ecr get-login-password --region eu-west-2 --profile elcb | podman login --username AWS --password-stdin 984617344736.dkr.ecr.eu-west-2.amazonaws.com
+podman build -t elcb . --load
+podman tag elcb:latest 984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest
+podman push 984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest

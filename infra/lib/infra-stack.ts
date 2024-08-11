@@ -37,6 +37,11 @@ export class InfraStack extends cdk.Stack {
       "allow http access from the world"
     );
     securityGroup.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.tcp(443),
+      "allow https access from the world"
+    );
+    securityGroup.addIngressRule(
       ec2.Peer.ipv4("3.8.37.24/29"),
       ec2.Port.tcp(22),
       "allow EC2 Instance Connect"
@@ -67,7 +72,12 @@ export class InfraStack extends cdk.Stack {
         S3AccessPolicy: new iam.PolicyDocument({
           statements: [
             new iam.PolicyStatement({
-              actions: ["s3:GetObject", "s3:PutObject", "s3:ListBucket"],
+              actions: [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:ListBucket",
+                "s3:DeleteObject",
+              ],
               resources: [
                 `arn:aws:s3:::${s3BucketName}`,
                 `arn:aws:s3:::${s3BucketName}/*`,
@@ -89,7 +99,7 @@ export class InfraStack extends cdk.Stack {
     sudo $(aws ecr get-login --no-include-email --region ${this.region})
     aws ecr get-login-password --region eu-west-2  | docker login --username AWS --password-stdin 984617344736.dkr.ecr.eu-west-2.amazonaws.com
     docker pull 984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest
-    docker run -d -p 80:8000 \
+    docker run -d -p 80:80 -p 443:443 \
       -e LITESTREAM_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
       -e LITESTREAM_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
       -e AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN \

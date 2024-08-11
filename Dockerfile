@@ -1,5 +1,5 @@
 # Use an ARM-compatible base image with Python 3.9
-FROM arm64v8/python:3.9-slim
+FROM arm64v8/python:3.9-slim 
 
 # Install dependencies
 RUN apt-get update && \
@@ -7,10 +7,12 @@ RUN apt-get update && \
     build-essential \
     libpq-dev \
     curl \
+    nginx \
+    vim \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install pipenv
+# Install pipenv and gunicorn
 RUN pip install --no-cache-dir pipenv gunicorn
 
 # Install Litestream
@@ -22,22 +24,36 @@ WORKDIR /app
 # Copy Pipfile and Pipfile.lock
 COPY Pipfile  /app/
 
-
 # Install Python dependencies via Pipenv
 RUN pipenv install 
 
+# Copy the Django application code
+COPY mysite litestream.yml /app/
+
+# Collect static files for Django
+RUN pipenv run python manage.py collectstatic --noinput
 
 # Copy the entrypoint script
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
-# Copy the Django application code
-COPY mysite litestream.yml /app/
 
-RUN pipenv run python manage.py collectstatic
+RUN adduser --system --no-create-home --disabled-login --group nginx
+# Copy Nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
 
-# Expose the port the app runs on
+# Copy SSL certificate and key (Assuming you add them to the Docker context)
+COPY ssl/cert.pem /etc/nginx/ssl/cert.pem
+COPY ssl/privkey.pem /etc/nginx/ssl/privkey.pem
+COPY ssl/cloudflare_root.pem /etc/nginx/ssl/cloudflare_root.pem
+
+# Ensure the SSL directory has the correct permissions
+RUN chmod 600 /etc/nginx/ssl/* && chown nginx:nginx /etc/nginx/ssl/*
+
+# Expose the ports for Nginx and the app
+EXPOSE 443
+EXPOSE 80
 EXPOSE 8000
 
-# Command to start Litestream and monitor the entrypoint script
-CMD ["litestream", "replicate", "-exec", "/app/entrypoint.sh", "-config", "/app/litestream.yml"]
+# Command to start Nginx, Litestream, and the application
+CMD ["/bin/bash", "-c", "nginx && litestream replicate -exec /app/entrypoint.sh -config /app/litestream.yml"]
