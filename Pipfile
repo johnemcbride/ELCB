@@ -15,6 +15,7 @@ django-storages = {extras = ["s3"], version = "*"}
 django-crispy-forms = "*"
 crispy-forms-gds = "*"
 gunicorn = "*"
+django-inertia = "*"
 
 [dev-packages]
 boto3 = "*"

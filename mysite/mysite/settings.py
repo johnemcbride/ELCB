@@ -32,7 +32,8 @@ INSTALLED_APPS = [
     'jazzmin',
     'yapp',
     'cms',
-
+    'django_inertia',
+    'frontend',
     'nested_admin',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -82,11 +83,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'wagtail.contrib.redirects.middleware.RedirectMiddleware',
+    'django_inertia.middleware.InertiaMiddleware',
 
 ]
 
 ROOT_URLCONF = 'mysite.urls'
-
+INERTIA_TEMPLATE = 'index.html'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
