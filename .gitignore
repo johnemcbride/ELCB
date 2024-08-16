@@ -7,3 +7,5 @@ mysite/db.sqlite3
 mysite/staticfiles/
 documents/
 mysite/frontend/node_modules/
+mysite/react-app/dist/
+mysite/react-app/node_modules/

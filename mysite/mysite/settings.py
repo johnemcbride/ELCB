@@ -30,9 +30,10 @@ STATIC_URL = "/static/"
 INSTALLED_APPS = [
 
     'jazzmin',
+    'django_vite',
+    'inertia',
     'yapp',
     'cms',
-    'django_inertia',
     'frontend',
     'nested_admin',
     'django.contrib.admin',
@@ -83,12 +84,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'wagtail.contrib.redirects.middleware.RedirectMiddleware',
-    'django_inertia.middleware.InertiaMiddleware',
+    'inertia.middleware.InertiaMiddleware',
 
 ]
 
 ROOT_URLCONF = 'mysite.urls'
-INERTIA_TEMPLATE = 'index.html'
+INERTIA_TEMPLATE = 'app.html'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -104,6 +105,25 @@ TEMPLATES = [
         },
     },
 ]
+
+
+DJANGO_VITE = {
+    "default": {
+        "dev_mode": True,
+        "manifest_path": BASE_DIR / 'react-app' / 'dist'/'.vite'/'manifest.json'
+    }
+}
+
+VITE_BASE_URL = os.getenv('VITE_BASE_URL', 'http://127.0.0.1:5173/')
+
+# Where ViteJS assets are built.
+DJANGO_VITE_ASSETS_PATH = BASE_DIR / 'react-app' / 'dist'
+# If we should use HMR or not.
+DJANGO_VITE_DEV_MODE = False
+# we need this to get around cors issues
+DJANGO_VITE_DEV_SERVER_HOST = '127.0.0.1'
+# this is the default, but I'm leaving this here, so you know what to change if you want to run on a different port
+DJANGO_VITE_PORT = 3000
 
 WSGI_APPLICATION = 'mysite.wsgi.application'
 
@@ -145,6 +165,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STATICFILES_DIRS = [DJANGO_VITE_ASSETS_PATH]
 
 if os.getenv('LAMBDA_TASK_ROOT'):
     print('Configuring for cloud')

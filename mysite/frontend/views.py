@@ -1,5 +1,5 @@
-from django_inertia import render
+from django.shortcuts import render
 
 
 def index(request):
-    return render(request, 'App', props={})
+    return render(request, template_name="app.html")

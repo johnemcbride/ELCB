@@ -1,0 +1,21 @@
+{% load django_vite %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                 <!-- vite hmr -->
+                {% vite_react_refresh %} 
+                {% vite_hmr_client %}    
+                {% vite_asset 'src/index.jsx'  %}
+        <title>ELCB On Nuggetware</title>
+    </head>
+    <body>      
+        <div id="root"></div><div>
+        <!-- inertia -->
+        {% block inertia %}
+        
+
+        {% endblock %}
+    </body>
+</html>

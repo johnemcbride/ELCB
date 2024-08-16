@@ -11,11 +11,12 @@ whitenoise = "*"
 django-nested-admin = "*"
 django-jazzmin = "*"
 wagtail = "*"
-django-storages = {extras = ["s3"], version = "*"}
+django-storages = {extras = ["s3"] }
 django-crispy-forms = "*"
 crispy-forms-gds = "*"
 gunicorn = "*"
-django-inertia = "*"
+django-vite = "*"
+inertia-django = "*"
 
 [dev-packages]
 boto3 = "*"
