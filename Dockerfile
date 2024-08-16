@@ -30,8 +30,6 @@ RUN pipenv install
 # Copy the Django application code
 COPY mysite litestream.yml /app/
 
-# Collect static files for Django
-RUN pipenv run python manage.py collectstatic --noinput
 
 # Copy the entrypoint script
 COPY entrypoint.sh /app/entrypoint.sh
@@ -49,6 +47,15 @@ COPY ssl/cloudflare_root.pem /etc/nginx/ssl/cloudflare_root.pem
 
 # Ensure the SSL directory has the correct permissions
 RUN chmod 600 /etc/nginx/ssl/* && chown nginx:nginx /etc/nginx/ssl/*
+
+WORKDIR /app/mysite/react-app
+RUN npm i
+RUN npm run vite-build
+
+# Create and set the working directory
+WORKDIR /app
+# Collect static files for Django
+RUN pipenv run python manage.py collectstatic --noinput
 
 # Expose the ports for Nginx and the app
 EXPOSE 443
