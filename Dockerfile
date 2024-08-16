@@ -18,6 +18,13 @@ RUN pip install --no-cache-dir pipenv gunicorn
 # Install Litestream
 RUN curl -L https://github.com/benbjohnson/litestream/releases/download/v0.3.11/litestream-v0.3.11-linux-arm64.tar.gz | tar xz -C /usr/local/bin
 
+
+
+# Install Node.js 20 (ARM-compatible)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 # Create and set the working directory
 WORKDIR /app
 
@@ -48,7 +55,7 @@ COPY ssl/cloudflare_root.pem /etc/nginx/ssl/cloudflare_root.pem
 # Ensure the SSL directory has the correct permissions
 RUN chmod 600 /etc/nginx/ssl/* && chown nginx:nginx /etc/nginx/ssl/*
 
-WORKDIR /app/mysite/react-app
+WORKDIR /app/react-app
 RUN npm i
 RUN npm run vite-build
 

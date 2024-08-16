@@ -109,7 +109,7 @@ TEMPLATES = [
 
 DJANGO_VITE = {
     "default": {
-        "dev_mode": False,
+        "dev_mode": DEBUG,
         "manifest_path": BASE_DIR / 'react-app' / 'dist'/'.vite'/'manifest.json'
     }
 }

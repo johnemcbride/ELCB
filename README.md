@@ -84,3 +84,6 @@ aws ecr get-login-password --region eu-west-2 --profile elcb | podman login --us
 podman build -t elcb . --load
 podman tag elcb:latest 984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest
 podman push 984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest
+
+### increase podman memory fo th rizzla
+podman machine set --cpus 4 --memory 5012
