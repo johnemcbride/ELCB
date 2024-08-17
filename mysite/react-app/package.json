@@ -10,6 +10,7 @@
     "@emotion/styled": "^11.10.5",
     "@faker-js/faker": "^8.0.2",
     "@fontsource/josefin-sans": "^4.5.12",
+    "@inertiajs/react": "^1.2.0",
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.11.7",
     "@mui/x-data-grid": "^6.0.0",

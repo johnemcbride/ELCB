@@ -30,8 +30,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('cms/', include(wagtailadmin_urls)),
     path('documents/', include(wagtaildocs_urls)),
-    path('', include(frontend_urls)),
-    # path('pages/', include(wagtail_urls)),
+    path('/frontend', include(frontend_urls)),
+    path('', include(wagtail_urls)),
 
 
 

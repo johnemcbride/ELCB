@@ -88,7 +88,10 @@ function Copyright(props) {
   );
 }
 
-export default function SignUpSide() {
+export default function SignUpSide(props) {
+
+  console.log('Prop test')
+  console.log(props)
   Analytics.record({ name: "signUpVisit" });
   const [error, setError] = useState({ error: false, message: "" });
   const [formObject, setFormObject] = useState({});
@@ -144,6 +147,7 @@ export default function SignUpSide() {
 
   const [isLoaded, setIsLoaded] = useState(false);
 
+  const wagtailProps = props
   return (
     <>
       <Grid container component="main" sx={{ height: "100vh" }}>
@@ -164,6 +168,7 @@ export default function SignUpSide() {
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
+
         />
 
         <Formik
@@ -228,7 +233,7 @@ export default function SignUpSide() {
                 .catch((error) => {
                   setError({ error: true, message: error.message });
                 });
-            } catch (error) {}
+            } catch (error) { }
           }}
         >
           {(props) => (
@@ -277,10 +282,12 @@ export default function SignUpSide() {
                       width: 80,
                       my: 1,
                     }}
-                    src="/elcblogo.png"
+                    src="/static/elcblogo.png"
                   />
-                  <Typography component="h1" variant="h5">
-                    Sign up
+                  <Typography component="h1" variant="h5" dangerouslySetInnerHTML=
+                    {{ __html: wagtailProps.welcome_message }}
+                  >
+
                   </Typography>
                   <Box
                     component="form"
@@ -322,7 +329,7 @@ export default function SignUpSide() {
             </>
           )}
         </Formik>
-      </Grid>
+      </Grid >
     </>
   );
 }
@@ -528,10 +535,10 @@ function Step1({
         disabled={
           disabled ||
           (errors.forename ||
-          errors.surname ||
-          errors.dateofbirth ||
-          errors.sex ||
-          (Object.keys(touched).length === 0 && touched.constructor === Object)
+            errors.surname ||
+            errors.dateofbirth ||
+            errors.sex ||
+            (Object.keys(touched).length === 0 && touched.constructor === Object)
             ? true
             : false)
         }
@@ -660,10 +667,10 @@ function Step2({
         sx={{ mt: 3, mb: 2 }}
         disabled={
           errors.username ||
-          errors.email ||
-          errors.password ||
-          errors.confirmpassword ||
-          (Object.keys(touched).length === 0 && touched.constructor === Object)
+            errors.email ||
+            errors.password ||
+            errors.confirmpassword ||
+            (Object.keys(touched).length === 0 && touched.constructor === Object)
             ? true
             : false
         }
@@ -738,7 +745,7 @@ function Step3({
         sx={{ mt: 3, mb: 2 }}
         disabled={
           errors.code ||
-          (Object.keys(touched).length === 0 && touched.constructor === Object)
+            (Object.keys(touched).length === 0 && touched.constructor === Object)
             ? true
             : false
         }

@@ -1,10 +1,17 @@
 
 
+import { orange } from "@mui/material/colors";
 import React from "react";
 import ReactDOM from "react-dom/client";
+import "@fontsource/josefin-sans";
+import { createRoot } from 'react-dom/client'
+import { createInertiaApp } from '@inertiajs/react'
 import "./index.css";
 import App from "./App.jsx";
 import { Amplify, Analytics } from "aws-amplify";
+
+import CssBaseline from "@mui/material/CssBaseline";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 //import { Amplify } from "aws-amplify";
 
 import config from "./aws-exports";
@@ -71,11 +78,71 @@ function listenToAutoSignInEvent() {
   });
 }
 
+let theme = createTheme({
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        contained: {
+          backgroundColor: "#408948",
+        },
+      },
+    },
+  },
+  typography: {
+    fontFamily: [
+      "Josefin Sans",
+      '"Segoe UI"',
+      "Roboto",
+      '"Helvetica Neue"',
+      "Arial",
+      "sans-serif",
+      '"Apple Color Emoji"',
+      '"Segoe UI Emoji"',
+      '"Segoe UI Symbol"',
+    ].join(","),
+    grid: {
+      height: "100%",
+    },
+    palette: {
+      primary: {
+        main: orange[500],
+      },
+      secondary: {
+        main: "#408948",
+      },
+    },
+    overrides: {
+      MuiAppBar: {
+        colorDefault: {
+          backgroundColor: "black",
+        },
+      },
+    },
+  },
+});
+
+
 Amplify.configure(config);
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>
-);
+// const root = ReactDOM.createRoot(document.getElementById("root"));
+// root.render(
+//   <BrowserRouter basename='/cms/pages/3/edit/preview/'>
+//     <App />
+//   </BrowserRouter>
+// );
+
+createInertiaApp({
+  id: 'app',
+  resolve: name => {
+    const pages = import.meta.glob('./components/*.jsx', { eager: true })
+    return pages[`./components/${name}.jsx`]
+  },
+  setup({ el, App, props }) {
+    createRoot(el).render(
+
+
+      <ThemeProvider theme={theme}>
+        < CssBaseline />
+        <BrowserRouter ><App {...props} /></BrowserRouter></ThemeProvider>)
+  },
+})

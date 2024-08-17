@@ -5,6 +5,7 @@ import { resolve } from 'path'; // Import resolve from path
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [react()],
+   
     root: resolve('.'),
     base: '/static/',
     server: {
@@ -16,6 +17,13 @@ export default defineConfig({
             usePolling: true,
             disableGlobbing: false,
         },
+        proxy: {
+           
+      
+            '/pages': {
+              target: 'http://127.0.0.1:5173/'
+            }
+          }
     },
     define: { global: 'window' },
     resolve: {

@@ -2,7 +2,7 @@ import React from "react";
 import Terms from "./components/Terms.jsx";
 import ResetPassword from "./components/ResetPassword.jsx";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import "@fontsource/josefin-sans";
+
 import { Amplify, API } from "aws-amplify";
 import NewMemberLanding from "./components/NewMemberLanding.jsx";
 import SignIn from "./components/SignIn.jsx";
@@ -24,57 +24,17 @@ import { PrivateRoute } from "./components/PrivateRoute.jsx";
 import Loading from "./components/Loading.jsx";
 import Box from '@mui/material/Box';
 
+import { Head } from '@inertiajs/react';
+
 Amplify.configure(awsconfig);
 
-let theme = createTheme({
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        contained: {
-          backgroundColor: "#408948",
-        },
-      },
-    },
-  },
-  typography: {
-    fontFamily: [
-      "Josefin Sans",
-      '"Segoe UI"',
-      "Roboto",
-      '"Helvetica Neue"',
-      "Arial",
-      "sans-serif",
-      '"Apple Color Emoji"',
-      '"Segoe UI Emoji"',
-      '"Segoe UI Symbol"',
-    ].join(","),
-    grid: {
-      height: "100%",
-    },
-    palette: {
-      primary: {
-        main: orange[500],
-      },
-      secondary: {
-        main: "#408948",
-      },
-    },
-    overrides: {
-      MuiAppBar: {
-        colorDefault: {
-          backgroundColor: "black",
-        },
-      },
-    },
-  },
-});
 
-
-const App = () => {
+const App = (props) => {
   const [isLoaded, setIsLoaded] = React.useState(false);
   React.useEffect(() => {
     console.log('ELCB Migration Underway')
     const fontLoaded = document.fonts.load("12px 'Josefin Sans'");
+    console.log(fontLoaded)
 
     Promise.all([fontLoaded])
       .then(() => {
@@ -90,13 +50,16 @@ const App = () => {
   return (
 
     isLoaded ?
-
-      <ThemeProvider theme={theme}>
-        < CssBaseline />
-
+      <><Head title="poop">
+      </Head>
         <Routes>
 
-          <Route path="/signup" element={<SignUp />} />
+
+          <Route path="/signup" element={<SignUp {...props} />} />
+
+          {/* <Route path="/pages/" element={<SignUp />} /> */}
+
+          <Route path="/" element={<SignUp />} />
           <Route path="/resetpassword" element={<ResetPassword />} />
           <Route path="/termsofservice" element={<Terms />} />
           <Route path="/signin" element={<SignIn />} />
@@ -162,8 +125,7 @@ const App = () => {
 
           <Route path="/signout" element={<SignOut />} />
         </Routes>
-
-      </ThemeProvider >
+      </>
 
       : <Loading />)
 

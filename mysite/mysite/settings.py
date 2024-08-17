@@ -89,7 +89,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'mysite.urls'
-INERTIA_TEMPLATE = 'app.html'
+INERTIA_LAYOUT = 'frontend/sign_up_page.html'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

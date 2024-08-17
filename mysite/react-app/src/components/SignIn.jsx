@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 
+import { Head } from '@inertiajs/react';
 import { Analytics } from "aws-amplify";
 import Link from "@mui/material/Link";
 import AppBar from "@mui/material/AppBar";
@@ -84,6 +85,8 @@ export default function SignIn() {
 
   return isLoaded ? (
     <>
+      <Head title="poop">
+      </Head>
       <GlobalStyles
         styles={{ ul: { margin: 0, padding: 0, listStyle: "none" } }}
       />
