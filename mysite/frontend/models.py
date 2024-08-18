@@ -15,6 +15,7 @@ class SignUpPage(Page):
 
     moduleLookUp = {'signup': "SignUp",
                     'signin': "SignIn",
+                    'landing': 'NewMemberProfile'
 
                     }
     logo = models.ForeignKey(
