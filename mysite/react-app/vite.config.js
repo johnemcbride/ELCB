@@ -5,7 +5,7 @@ import { resolve } from 'path'; // Import resolve from path
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [react()],
-   
+
     root: resolve('.'),
     base: '/static/',
     server: {
@@ -18,12 +18,12 @@ export default defineConfig({
             disableGlobbing: false,
         },
         proxy: {
-           
-      
+
+
             '/pages': {
-              target: 'http://127.0.0.1:5173/'
+                target: 'http://127.0.0.1:5173/'
             }
-          }
+        }
     },
     define: { global: 'window' },
     resolve: {
@@ -42,6 +42,16 @@ export default defineConfig({
             },
             output: {
                 chunkFileNames: undefined,
+
+                manualChunks: {
+                    // Ensure Amplify core modules are in the same chunk
+                    amplifyCore: [
+                        '@aws-amplify/core',
+                        '@aws-amplify/pubsub',
+                        '@aws-amplify/api-rest'
+                    ]
+                }
+
             },
         },
     },

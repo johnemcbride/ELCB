@@ -1,34 +1,24 @@
-import React, { useState, useEffect, useLayoutEffect } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
-
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Analytics } from "aws-amplify";
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import InputLabel from "@mui/material/InputLabel";
-import FormControl, { formControlClasses } from "@mui/material/FormControl";
-import FormLabel from "@mui/material/FormLabel";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import RadioGroup from "@mui/material/RadioGroup";
-import Radio from "@mui/material/Radio";
+import FormControl from "@mui/material/FormControl";
 import Toolbar from "@mui/material/Toolbar";
 import Link from "@mui/material/Link";
 import AppBar from "@mui/material/AppBar";
-import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
-import Checkbox from "@mui/material/Checkbox";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { Formik, ErrorMessage, Field } from "formik";
+import { Formik, ErrorMessage } from "formik";
 import { Auth, Hub } from "aws-amplify";
 import * as yup from "yup";
-import { FormHelperText, TextareaAutosize } from "@mui/material";
-import CircularProgress from "@mui/material/CircularProgress";
+import { FormHelperText } from "@mui/material";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import moment from "moment";
@@ -143,11 +133,11 @@ export default function SignUpSide(props) {
     setError({ error: true, message: error.message });
   };
 
-  const fontLoaded = document.fonts.load("12px 'Josefin Sans'");
 
-  const [isLoaded, setIsLoaded] = useState(false);
 
   const wagtailProps = props
+  console.log('JOHN DEBUG')
+  console.log(wagtailProps)
   return (
     <>
       <Grid container component="main" sx={{ height: "100vh" }}>
@@ -284,8 +274,8 @@ export default function SignUpSide(props) {
                     }}
                     src="/static/elcblogo.png"
                   />
-                  <Typography component="h1" variant="h5" dangerouslySetInnerHTML=
-                    {{ __html: wagtailProps.welcome_message }}
+                  <Typography component="h1" variant="h5"
+                    dangerouslySetInnerHTML={{ __html: wagtailProps.welcome_message }}
                   >
 
                   </Typography>
@@ -520,7 +510,7 @@ function Step1({
               ))}
             </Select>
 
-            <FormHelperText error="true" type="invalid">
+            <FormHelperText error={true} type="invalid">
               <ErrorMessage name={"ethnicity"} />
             </FormHelperText>
           </FormControl>

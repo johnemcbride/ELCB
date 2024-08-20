@@ -11,11 +11,39 @@ from wagtail.images.models import Image
 from inertia import render
 
 
+class ELCBAppPage(Page):
+    class Meta:
+        abstract = True
+
+    moduleLookUp = {}
+
+    def get_context(self, request):
+        # Get the default context from the parent class
+        context = super().get_context(request)
+        # Add your custom context data
+        slug = self.slug
+        module_name = self.moduleLookUp.get(slug)
+        context['module_name'] = module_name
+
+        return context
+
+    def serve(self, request):
+        context = self.get_context(request)
+        del context['request']
+        module_name = context.get('module_name')
+
+        # 'Home' corresponds to your React component
+        return render(request, module_name, context)
+
+    def serve_preview(self, request, mode_name):
+        return self.serve(request)
+
+
 class SignUpPage(Page):
 
     moduleLookUp = {'signup': "SignUp",
                     'signin': "SignIn",
-                    'landing': 'NewMemberProfile'
+                    'landing': 'NewMemberLanding'
 
                     }
     logo = models.ForeignKey(

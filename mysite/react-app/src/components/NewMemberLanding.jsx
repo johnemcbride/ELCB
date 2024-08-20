@@ -47,6 +47,7 @@ import * as queries from "../graphql/queries";
 import { useNavigate, Navigate } from "react-router-dom";
 import { createEnrolment as createEnrolmentMutation } from "../graphql/mutations";
 
+import withAuth from './withAuth.jsx';
 import StepWizard from "react-step-wizard";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
@@ -70,13 +71,13 @@ const age = (birthdate) => {
 
 
 
-export default function PricingContent({ groups, session }) {
+const LandingPage = ({ groups, session }) => {
 
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [state, setState] = React.useState({});
 
   React.useEffect(() => {
-    Analytics.record({ name: "enrolmentManagementVisit" });
+
     API.get("enrolmentmanager", "/enrolmentstatus", {
       headers: {
         Authorization: session?.idToken?.getJwtToken(),
@@ -1084,3 +1085,7 @@ function ConfirmBeforeCheckout({
     </>
   );
 }
+
+
+
+export default withAuth(LandingPage)

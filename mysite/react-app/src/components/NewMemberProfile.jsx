@@ -54,6 +54,8 @@ import { updateMember } from "../graphql/mutations";
 
 export default function PricingContent({ groups, session }) {
 
+  console.log('Here is session')
+  console.log(session)
   const [isLoaded, setIsLoaded] = React.useState(false);
 
   const handleClose = () => {
