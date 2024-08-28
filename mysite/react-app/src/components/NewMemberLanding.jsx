@@ -71,23 +71,23 @@ const age = (birthdate) => {
 
 
 
-const LandingPage = ({ groups, session }) => {
+const LandingPage = (props) => {
 
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [state, setState] = React.useState({});
 
-  React.useEffect(() => {
+  // React.useEffect(() => {
 
-    API.get("enrolmentmanager", "/enrolmentstatus", {
-      headers: {
-        Authorization: session?.idToken?.getJwtToken(),
-      },
-    }).then((state) => {
-      state.accessToken = session?.idToken?.getJwtToken();
-      setState(state);
-      setIsLoaded(true);
-    }).catch(console.log);;
-  }, [session]);
+  //   API.get("enrolmentmanager", "/enrolmentstatus", {
+  //     headers: {
+  //       Authorization: session?.idToken?.getJwtToken(),
+  //     },
+  //   }).then((state) => {
+  //     state.accessToken = session?.idToken?.getJwtToken();
+  //     setState(state);
+  //     setIsLoaded(true);
+  //   }).catch(console.log);;
+  // }, [session]);
 
 
 
@@ -1089,3 +1089,4 @@ function ConfirmBeforeCheckout({
 
 
 export default withAuth(LandingPage)
+//export default LandingPage

@@ -47,6 +47,8 @@ class Command(BaseCommand):
         # Create a signup child page
         signup_page = SignUpPage(title="Sign Up", slug="signup")
         landing_page.add_child(instance=signup_page)
+        signout_page = SignUpPage(title="Sign Out", slug="signout")
+        landing_page.add_child(instance=signout_page)
         landing_page.add_child(instance=landing_page2)
         signup_page.save()
         print('Created signup')

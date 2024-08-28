@@ -15,7 +15,8 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('/')  # or return some Inertia response
+            # or return some Inertia response
+            return render(request, 'NewMemberLanding')
         else:
             return render(request, 'SignIn', {
                 'error': 'Invalid username or password',
@@ -26,4 +27,4 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('/')  # or return some Inertia response
+    return render(request, 'SignIn', {})  # or return some Inertia response

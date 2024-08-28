@@ -52,7 +52,7 @@ export default function SignIn(props) {
   const [formObject, setFormObject] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const navigate = useNavigate();
+
 
   const initialValues = {
     username: formObject.username || "",
@@ -75,14 +75,15 @@ export default function SignIn(props) {
 
     Promise.allSettled([fontLoaded]).then((results) => {
       console.log(JSON.stringify(results));
-      if (user !== '') {
+      if (user !== null) {
+        console.log('Trying router.visit')
         router.visit("/landing/");
       } else {
         console.log(document.fonts.load("12px 'Josefin Sans'"));
         setIsLoaded(true);
       }
     });
-  }, []);
+  }, [props.user, isLoaded]);
 
   return isLoaded ? (
     <>

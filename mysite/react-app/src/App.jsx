@@ -21,20 +21,6 @@ import Loading from "./components/Loading.jsx";
 import { ErrorBoundary } from "react-error-boundary";
 
 
-// // Use lazy loading for dynamically importing components
-// const Terms = lazy(() => import("./components/Terms.jsx"));
-// const ResetPassword = lazy(() => import("./components/ResetPassword.jsx"));
-// const NewMemberLanding = lazy(() => import("./components/NewMemberLanding.jsx"));
-// const SignIn = lazy(() => import("./components/SignIn.jsx"));
-// const SignUp = lazy(() => import("./components/SignUp.jsx"));
-// const Header = lazy(() => import("./components/Header.jsx"));
-// const Footer = lazy(() => import("./components/Footer.jsx"));
-// const SignOut = lazy(() => import("./components/SignOut.jsx"));
-// const NewMemberProfile = lazy(() => import("./components/NewMemberProfile.jsx"));
-// const Enrolments = lazy(() => import("./pages/admin/Enrolments.jsx"));
-// const Members = lazy(() => import("./pages/admin/Members.jsx"));
-// const Holidays = lazy(() => import("./pages/admin/Holidays.jsx"));
-
 
 Amplify.configure(awsconfig);
 
@@ -78,11 +64,11 @@ const App = (props) => {
 
               <Route path="/" element={
                 <Suspense fallback={<div>Loading...</div>}>
-                  <SignUp />
+                  <SignUp {...props} />
                 </Suspense>} />
               <Route path="/resetpassword" element={
                 <Suspense fallback={<div>Loading...</div>}>
-                  <ResetPassword />
+                  <ResetPassword {...props} />
                 </Suspense>} />
               <Route path="/termsofservice" element={
                 <Suspense fallback={<div>Loading...</div>}>
@@ -99,7 +85,7 @@ const App = (props) => {
                 <Suspense fallback={<div>Loading...</div>}>
                   <PrivateRoute>
                     <Header />
-                    <NewMemberLanding />
+                    <NewMemberLanding {...props} />
                     <Footer />
                   </PrivateRoute>
                 </Suspense>} />
@@ -110,7 +96,7 @@ const App = (props) => {
                   <Suspense fallback={<div>Loading...</div>}>
                     <PrivateRoute>
                       <Header />
-                      <NewMemberLanding />
+                      <NewMemberLanding  {...props} />
                       <Footer />
                     </PrivateRoute>
                   </Suspense>
@@ -123,7 +109,7 @@ const App = (props) => {
                   <Suspense fallback={<div>Loading...</div>}>
                     <PrivateRoute>
                       <Header />
-                      <NewMemberProfile />
+                      <NewMemberProfile {...props} />
                       <Footer />
                     </PrivateRoute>
                   </Suspense>
@@ -135,7 +121,7 @@ const App = (props) => {
                 element={
                   <Suspense fallback={<div>Loading...</div>}>
                     <PrivateRoute>
-                      <Enrolments />
+                      <Enrolments {...props} />
                     </PrivateRoute>
                   </Suspense>
                 }
@@ -145,7 +131,7 @@ const App = (props) => {
                 element={
                   <Suspense fallback={<div>Loading...</div>}>
                     <PrivateRoute>
-                      <Holidays />
+                      <Holidays {...props} />
                     </PrivateRoute>
                   </Suspense>
                 }
@@ -155,7 +141,7 @@ const App = (props) => {
                 element={
                   <Suspense fallback={<div>Loading...</div>}>
                     <PrivateRoute>
-                      <Members />
+                      <Members {...props} />
                     </PrivateRoute>
                   </Suspense>
                 }
@@ -163,7 +149,7 @@ const App = (props) => {
 
               <Route path="/signout" element={
                 <Suspense fallback={<div>Loading...</div>}>
-                  <SignOut />
+                  <SignOut {...props} />
                 </Suspense>} />
             </Routes>
           </Suspense>
