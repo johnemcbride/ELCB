@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
-
+import { router } from '@inertiajs/react'
 import { ErrorBoundary } from "react-error-boundary";
 
 import { Head } from '@inertiajs/react';
@@ -46,7 +46,8 @@ function Copyright(props) {
   );
 }
 
-export default function SignIn() {
+export default function SignIn(props) {
+  console.log(props)
   const [error, setError] = useState({ error: false, message: "" });
   const [formObject, setFormObject] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,17 +66,17 @@ export default function SignIn() {
 
   // Similar to componentDidMount and componentDidUpdate:
   useEffect(() => {
-    Analytics.record({ name: "signInVisit" });
+
     console.log("is loaded is" + isLoaded);
     console.log("sign in page moutning");
 
-    const notloggedin = Auth.currentAuthenticatedUser();
+    const user = props.user
     const fontLoaded = document.fonts.load("12px 'Josefin Sans'");
 
-    Promise.allSettled([notloggedin, fontLoaded]).then((results) => {
+    Promise.allSettled([fontLoaded]).then((results) => {
       console.log(JSON.stringify(results));
-      if (results[0].status === "fulfilled") {
-        navigate("/landing");
+      if (user !== '') {
+        router.visit("/landing/");
       } else {
         console.log(document.fonts.load("12px 'Josefin Sans'"));
         setIsLoaded(true);
@@ -125,16 +126,32 @@ export default function SignIn() {
                 ...values,
               });
               try {
-                Auth.signIn(values.username.trim(), values.password.trim())
-                  .then((user) => {
-                    navigate("/landing");
-                    setIsSubmitting(false);
-                  })
-                  .catch((error) => {
-                    setError({ error: true, message: error.message });
-                    setIsSubmitting(false);
-                    console.log("error signing in", error);
-                  });
+                console.log('Logging in to DJANGO now')
+                //router.defaults.headers['X-CSRFToken'] = props.csrf_token;
+                const resp = router.post('/frontend/login/',
+                  {
+                    username: values.username.trim(),
+                    password: values.password.trim()
+                  }, {
+                  headers: {
+                    'X-CSRFToken': props.csrf_token
+                  }
+                }).then(resp => {
+                  // Handle the response here, if needed
+                  console.log(resp)
+                });
+                console.log('posted')
+                console.log(resp)
+                // Auth.signIn(values.username.trim(), values.password.trim())
+                //   .then((user) => {
+                //     navigate("/landing");
+                //     setIsSubmitting(false);
+                //   })
+                //   .catch((error) => {
+                //     setError({ error: true, message: error.message });
+                //     setIsSubmitting(false);
+                //     console.log("error signing in", error);
+                //   });
               } catch (error) { }
             }}
           >
@@ -241,12 +258,12 @@ export default function SignIn() {
                         fullWidth
                         variant="contained"
                         sx={{ mt: 3, mb: 2 }}
-                        disabled={
-                          !isValid ||
-                          (Object.keys(touched).length === 0 &&
-                            touched.constructor === Object) ||
-                          isSubmitting
-                        }
+                      // disabled={
+                      //   !isValid ||
+                      //   (Object.keys(touched).length === 0 &&
+                      //     touched.constructor === Object) ||
+                      //   isSubmitting
+                      // }
                       >
                         {isSubmitting ? (
                           <CircularProgress

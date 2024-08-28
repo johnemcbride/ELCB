@@ -90,7 +90,7 @@ const App = (props) => {
                 </Suspense>} />
               <Route path="/signin" element={
                 <Suspense fallback={<div>Loading...</div>}>
-                  <SignIn />
+                  <SignIn {...props} />
                 </Suspense>} />
 
 

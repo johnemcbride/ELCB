@@ -1,4 +1,5 @@
 from django.db import models
+from django.middleware.csrf import get_token
 
 from wagtail.fields import RichTextField
 from wagtail.admin.panels import FieldPanel
@@ -70,7 +71,20 @@ class SignUpPage(Page):
     def get_context(self, request):
         # Get the default context from the parent class
         context = super().get_context(request)
-        print(context)
+        context['csrf_token'] = get_token(request)
+
+        # Add the user object to the context
+        if request.user.is_authenticated:
+            user_data = {
+                'id': request.user.id,
+                'username': request.user.username,
+                'email': request.user.email,
+                # Add other fields as needed
+            }
+        else:
+            user_data = None
+
+        context['user'] = user_data
         # Add your custom context data
         slug = self.slug
         module_name = self.moduleLookUp.get(slug)
