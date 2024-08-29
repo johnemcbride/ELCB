@@ -17,6 +17,22 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from wagtail.snippets.models import register_snippet
 from wagtail.admin.panels import FieldPanel
+from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
+
+
+@register_setting
+class PaymentSettings(BaseSiteSetting):
+    stripe_id = models.CharField(max_length=255, help_text="Your Stripe ID")
+    success_url = models.URLField(
+        help_text="The URL to redirect to after a successful payment", null=True, blank=True)
+    cancel_url = models.URLField(
+        help_text="The URL to redirect to if the payment is canceled", null=True, blank=True)
+
+    panels = [
+        FieldPanel('stripe_id'),
+        FieldPanel('success_url'),
+        FieldPanel('cancel_url'),
+    ]
 
 
 @register_snippet
@@ -78,15 +94,26 @@ class Member(models.Model):
 
 @register_snippet
 class Enrolment(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+    ]
     member = models.ForeignKey(
         Member, on_delete=models.CASCADE, related_name='enrolments')
     term = models.ForeignKey(
         Term, on_delete=models.CASCADE, related_name='enrolments')
     enrolment_date = models.DateField(auto_now_add=True)
+    status = models.CharField(
+        max_length=7,
+        choices=STATUS_CHOICES,
+        default='pending',
+        help_text="The payment status of the enrolment"
+    )
 
     panels = [
         FieldPanel('member'),
         FieldPanel('term'),
+        FieldPanel('status'),
     ]
 
     def __str__(self):
@@ -146,21 +173,434 @@ class SignUpPage(Page):
             context['members'] = members
 
             # Get enrollments for each member in the current term
-            enrolments = {}
+            enrolment = None
             if current_term:
-                for member in members:
-                    enrolment = Enrolment.objects.filter(
-                        member=member, term=current_term).first()
-                    if enrolment:
-                        enrolments[member.id] = enrolment
+                enrolment = Enrolment.objects.filter(
+                    member=members[0], term=current_term).first()
 
-            context['enrolments'] = enrolments
+            context['currentEnrolment'] = enrolment
+
+            # load details of primary member
+            primary_member = Member.objects.for_user(request.user)
+            context['member'] = {'forename': primary_member[0].first_name}
+            context['userdata'] = {'custom:memberid': primary_member[0].id}
         else:
             user_data = None
+            context['member'] = None
 
         context['user'] = user_data
 
-        context['current_term'] = current_term
+        context['prodCat'] = {
+            "products": {
+                "bands": {
+                    "name": "Bands",
+                    "options": {
+                        "none": {
+                            "description": "No Bands (Lessons Only)",
+                            "id": "none",
+                            "price": 0,
+                            "available": True
+                        },
+                        "small": {
+                            "description": "One Small Band Only",
+                            "features": {
+                                "includes": "one",
+                                "options": [
+                                    {
+                                        "description": "Percussion",
+                                        "instruments": [
+                                            "Snare drum",
+                                            "Bass drum",
+                                            "Tenor drum",
+                                            "Cymbals",
+                                            "Bongos",
+                                            "Congas",
+                                            "Drum set",
+                                            "Tambourine",
+                                            "Timpani",
+                                            "Timbales",
+                                            "Tom-toms",
+                                            "Tam-tam",
+                                            "Xylophone",
+                                            "Marimba",
+                                            "Crotales",
+                                            "Vibraphone",
+                                            "Glockenspiel",
+                                            "Chimes",
+                                            "Wind chimes",
+                                            "Triangle",
+                                            "Wood blocks/temple blocks",
+                                            "Maracas",
+                                            "Claves",
+                                            "Anvil",
+                                            "Vibraslap",
+                                            "Rain stick",
+                                            "Whip",
+                                            "Guiro",
+                                            "Finger cymbals",
+                                            "Slide whistle",
+                                            "Sleigh bells",
+                                            "Other"
+                                        ]
+                                    },
+                                    {
+                                        "description": "Premier Band",
+                                        "instruments": [
+                                            "Flute",
+                                            "Piccolo",
+                                            "Bass clarinet",
+                                            "Clarinet in Bb",
+                                            "Oboe",
+                                            "Bassoon",
+                                            "Alto saxophone",
+                                            "Baritone saxophone",
+                                            "Tenor saxophone",
+                                            "Tenor trombone",
+                                            "Bass trombone",
+                                            "Trumpet/cornet in Bb",
+                                            "Alto tenor horn in Eb",
+                                            "Horn",
+                                            "Euphonium/Baritone horn",
+                                            "Tuba",
+                                            "Percussion",
+                                            "Other"
+                                        ]
+                                    },
+                                    {
+                                        "description": "Early Music",
+                                        "instruments": [
+                                            "Soprano Recorder",
+                                            "Alto Recorder",
+                                            "Tenor Recorder",
+                                            "Bass Recorder",
+                                            "Recorder",
+                                            "Flute",
+                                            "Violin",
+                                            "Other"
+                                        ]
+                                    },
+                                    {
+                                        "description": "Chamber Band",
+                                        "instruments": [
+                                            "Flute",
+                                            "Piccolo",
+                                            "Bass clarinet",
+                                            "Clarinet in Bb",
+                                            "Oboe",
+                                            "Bassoon",
+                                            "Alto saxophone",
+                                            "Baritone saxophone",
+                                            "Tenor saxophone",
+                                            "Tenor trombone",
+                                            "Bass trombone",
+                                            "Trumpet/cornet in Bb",
+                                            "Alto tenor horn in Eb",
+                                            "Horn",
+                                            "Euphonium/Baritone horn",
+                                            "Tuba",
+                                            "Percussion",
+                                            "Piano",
+                                            "Other"
+                                        ]
+                                    },
+                                    {
+                                        "description": "Jazz Stompers",
+                                        "instruments": [
+                                            "Flute",
+                                            "Piccolo",
+                                            "Bass clarinet",
+                                            "Clarinet in Bb",
+                                            "Oboe",
+                                            "Bassoon",
+                                            "Alto saxophone",
+                                            "Baritone saxophone",
+                                            "Tenor saxophone",
+                                            "Tenor trombone",
+                                            "Bass trombone",
+                                            "Trumpet/cornet in Bb",
+                                            "Alto tenor horn in Eb",
+                                            "Horn",
+                                            "Euphonium/Baritone horn",
+                                            "Tuba",
+                                            "Guitar",
+                                            "Piano",
+                                            "Percussion",
+                                            "Bass guitar",
+                                            "Other"
+                                        ]
+                                    },
+                                    {
+                                        "description": "Jazz Combo",
+                                        "instruments": [
+                                            "Flute",
+                                            "Piccolo",
+                                            "Bass clarinet",
+                                            "Clarinet in Bb",
+                                            "Oboe",
+                                            "Bassoon",
+                                            "Alto saxophone",
+                                            "Baritone saxophone",
+                                            "Tenor saxophone",
+                                            "Tenor trombone",
+                                            "Bass trombone",
+                                            "Trumpet/cornet in Bb",
+                                            "Alto tenor horn in Eb",
+                                            "Horn",
+                                            "Euphonium/Baritone horn",
+                                            "Tuba",
+                                            "Guitar",
+                                            "Piano",
+                                            "Percussion",
+                                            "Bass guitar",
+                                            "Violin",
+                                            "Other"
+                                        ]
+                                    }
+                                ]
+                            },
+                            "id": "small",
+                            "price": 58,
+                            "available": True
+                        },
+                        "all": {
+                            "description": "All Bands",
+                            "features": {
+                                "includes": "all",
+                                "options": [
+                                    {
+                                        "description": "Main Band",
+                                        "instruments": [
+                                            "Flute",
+                                            "Piccolo",
+                                            "Bass clarinet",
+                                            "Clarinet in Bb",
+                                            "Oboe",
+                                            "Bassoon",
+                                            "Alto saxophone",
+                                            "Baritone saxophone",
+                                            "Tenor saxophone",
+                                            "Tenor trombone",
+                                            "Bass trombone",
+                                            "Trumpet/cornet in Bb",
+                                            "Alto tenor horn in Eb",
+                                            "Horn",
+                                            "Euphonium/Baritone horn",
+                                            "Tuba",
+                                            "Percussion",
+                                            "Other"
+                                        ]
+                                    },
+                                    {
+                                        "description": "Big Band",
+                                        "instruments": [
+                                            "Alto saxophone",
+                                            "Baritone saxophone",
+                                            "Tenor saxophone",
+                                            "Tenor trombone",
+                                            "Bass trombone",
+                                            "Trumpet/cornet in Bb",
+                                            "Alto tenor horn in Eb",
+                                            "Horn",
+                                            "Euphonium/Baritone horn",
+                                            "Tuba",
+                                            "Guitar",
+                                            "Piano",
+                                            "Percussion",
+                                            "Bass guitar",
+                                            "Other"
+                                        ]
+                                    },
+                                    {
+                                        "description": "Percussion",
+                                        "instruments": [
+                                            "Snare drum",
+                                            "Bass drum",
+                                            "Tenor drum",
+                                            "Cymbals",
+                                            "Bongos",
+                                            "Congas",
+                                            "Drum set",
+                                            "Tambourine",
+                                            "Timpani",
+                                            "Timbales",
+                                            "Tom-toms",
+                                            "Tam-tam",
+                                            "Xylophone",
+                                            "Marimba",
+                                            "Crotales",
+                                            "Vibraphone",
+                                            "Glockenspiel",
+                                            "Chimes",
+                                            "Wind chimes",
+                                            "Triangle",
+                                            "Wood blocks/temple blocks",
+                                            "Maracas",
+                                            "Claves",
+                                            "Anvil",
+                                            "Vibraslap",
+                                            "Rain stick",
+                                            "Whip",
+                                            "Guiro",
+                                            "Finger cymbals",
+                                            "Slide whistle",
+                                            "Sleigh bells",
+                                            "Other"
+                                        ]
+                                    },
+                                    {
+                                        "description": "Premier Band",
+                                        "instruments": [
+                                            "Flute",
+                                            "Piccolo",
+                                            "Bass clarinet",
+                                            "Clarinet in Bb",
+                                            "Oboe",
+                                            "Bassoon",
+                                            "Alto saxophone",
+                                            "Baritone saxophone",
+                                            "Tenor saxophone",
+                                            "Tenor trombone",
+                                            "Bass trombone",
+                                            "Trumpet/cornet in Bb",
+                                            "Alto tenor horn in Eb",
+                                            "Horn",
+                                            "Euphonium/Baritone horn",
+                                            "Tuba",
+                                            "Percussion",
+                                            "Other"
+                                        ]
+                                    },
+                                    {
+                                        "description": "Early Music",
+                                        "instruments": [
+                                            "Soprano Recorder",
+                                            "Alto Recorder",
+                                            "Tenor Recorder",
+                                            "Bass Recorder",
+                                            "Recorder",
+                                            "Flute",
+                                            "Violin",
+                                            "Other"
+                                        ]
+                                    },
+                                    {
+                                        "description": "Chamber Band",
+                                        "instruments": [
+                                            "Flute",
+                                            "Piccolo",
+                                            "Bass clarinet",
+                                            "Clarinet in Bb",
+                                            "Oboe",
+                                            "Bassoon",
+                                            "Alto saxophone",
+                                            "Baritone saxophone",
+                                            "Tenor saxophone",
+                                            "Tenor trombone",
+                                            "Bass trombone",
+                                            "Trumpet/cornet in Bb",
+                                            "Alto tenor horn in Eb",
+                                            "Horn",
+                                            "Euphonium/Baritone horn",
+                                            "Tuba",
+                                            "Percussion",
+                                            "Piano",
+                                            "Other"
+                                        ]
+                                    },
+                                    {
+                                        "description": "Jazz Stompers",
+                                        "instruments": [
+                                            "Flute",
+                                            "Piccolo",
+                                            "Bass clarinet",
+                                            "Clarinet in Bb",
+                                            "Oboe",
+                                            "Bassoon",
+                                            "Alto saxophone",
+                                            "Baritone saxophone",
+                                            "Tenor saxophone",
+                                            "Tenor trombone",
+                                            "Bass trombone",
+                                            "Trumpet/cornet in Bb",
+                                            "Alto tenor horn in Eb",
+                                            "Horn",
+                                            "Euphonium/Baritone horn",
+                                            "Tuba",
+                                            "Guitar",
+                                            "Piano",
+                                            "Percussion",
+                                            "Bass guitar",
+                                            "Other"
+                                        ]
+                                    },
+                                    {
+                                        "description": "Jazz Combo",
+                                        "instruments": [
+                                            "Flute",
+                                            "Piccolo",
+                                            "Bass clarinet",
+                                            "Clarinet in Bb",
+                                            "Oboe",
+                                            "Bassoon",
+                                            "Alto saxophone",
+                                            "Baritone saxophone",
+                                            "Tenor saxophone",
+                                            "Tenor trombone",
+                                            "Bass trombone",
+                                            "Trumpet/cornet in Bb",
+                                            "Alto tenor horn in Eb",
+                                            "Horn",
+                                            "Euphonium/Baritone horn",
+                                            "Tuba",
+                                            "Guitar",
+                                            "Piano",
+                                            "Percussion",
+                                            "Bass guitar",
+                                            "Violin",
+                                            "Other"
+                                        ]
+                                    }
+                                ]
+                            },
+                            "id": "all",
+                            "price": 116,
+                            "available": True
+                        }
+                    }
+                },
+                "lessons": {
+                    "name": "Lessons",
+                    "options": {
+                        "none": {
+                            "description": "No lessons",
+                            "id": "none",
+                            "price": 0,
+                            "available": True
+                        },
+                        "one": {
+                            "description": "One 15 min lesson per week",
+                            "id": "one",
+                            "price": 116,
+                            "available": True
+                        },
+                        "two": {
+                            "description": "Two 15 min lessons per week",
+                            "id": "two",
+                            "price": 232,
+                            "available": True
+                        },
+                        "three": {
+                            "description": "Three 15 min lessons per week",
+                            "id": "three",
+                            "price": 348,
+                            "available": True
+                        }
+                    }
+                }
+            },
+            "ratesApplied": "full"
+        }
+        context['currentterm'] = {'term': current_term}
 
         # Add your custom context data
         slug = self.slug

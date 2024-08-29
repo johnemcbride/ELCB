@@ -75,7 +75,8 @@ const LandingPage = (props) => {
 
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [state, setState] = React.useState({});
-
+  console.log('props')
+  console.log(props)
   // React.useEffect(() => {
 
   //   API.get("enrolmentmanager", "/enrolmentstatus", {
@@ -90,6 +91,16 @@ const LandingPage = (props) => {
   // }, [session]);
 
 
+  React.useEffect(() => {
+
+    setIsLoaded(true);
+    setState(props);
+    console.log('bong')
+  }, [props]);
+
+
+  console.log('State')
+  console.log(state)
 
   const isTest = window.location.hostname.includes('eastlondoncommunity') ? false : true;
 
@@ -135,7 +146,7 @@ const LandingPage = (props) => {
 function VerticalLinearStepper({ state }) {
   console.log('Vertical Line Stepper state')
   console.log(state)
-  console.log(state.prodCat.products.bands.options['small'])
+  console.log(state?.prodCat?.products?.bands?.options['small'])
 
   const [instrumentsPlayed, setInstrumentsPlayed] = React.useState([]);
   let newState = {};
@@ -192,7 +203,7 @@ function VerticalLinearStepper({ state }) {
           <StepContent>
             {" "}
             <InstrumentBandPicker
-              bandOptions={state.prodCat.products.bands.options[productSelection['bands']] || []}
+              bandOptions={state?.prodCat?.products?.bands?.options[productSelection['bands']] || []}
               instrumentsPlayed={instrumentsPlayed}
               setInstrumentsPlayed={setInstrumentsPlayed}
             />
@@ -491,7 +502,7 @@ function MemberShipPicker({
                   value={wizardState[product]}
                   onChange={handleRadioChange}
                 >
-                  {Object.values(state.prodCat.products[product].options)
+                  {Object.values(state?.prodCat.products[product].options)
                     .filter((opt) => (opt.available ? true : false))
                     .map((option) => {
 
@@ -512,8 +523,8 @@ function MemberShipPicker({
                               value={option.id}
                               control={<Radio />}
                             />
-                            {option.description}
-                            {option.features?.includes
+                            {option?.description}
+                            {option?.features?.includes
                               ? [
                                 " includes ",
                                 <b>{option.features.includes}</b>,
@@ -634,16 +645,16 @@ function MembershipSummary({ state }) {
                       //variant="h1"
                       //color="green"
                       >
-                        {option.description}
-                        {option.features?.includes
+                        {option?.description}
+                        {option?.features?.includes
                           ? [
                             " including ",
-                            <b>{option.features.includes}</b>,
+                            <b>{option?.features.includes}</b>,
                             " of:",
                           ]
                           : null}
                       </Typography>
-                      {option.features ? (
+                      {option?.features ? (
                         <Grid container paddingBottom={2}>
                           {option?.features?.options.map((option) => {
                             return (
@@ -944,39 +955,67 @@ function ConfirmBeforeCheckout({
   const [isDisabled, setIsDisabled] = React.useState(false);
 
   const handleSubmit = (event) => {
+    console.log('Submitting')
     event.preventDefault();
 
     setIsloading(true);
 
-    const enrolment = {
-      bands: wizardState.bands,
-      lessons: wizardState.lessons,
-      giftAidConsent: wizardState.giftaidconsent ? true : false,
-      memberEnrolmentsId: state.userdata["custom:memberid"],
-      instrumentsPlayed: instrumentsPlayed
-    };
-    API.graphql({
-      query: createEnrolmentMutation,
-      variables: {
-        input: enrolment,
+    // const enrolment = {
+    //   bands: wizardState.bands,
+    //   lessons: wizardState.lessons,
+    //   giftAidConsent: wizardState.giftaidconsent ? true : false,
+    //   memberEnrolmentsId: state.userdata["custom:memberid"],
+    //   instrumentsPlayed: instrumentsPlayed
+    // };
+    // API.graphql({
+    //   query: createEnrolmentMutation,
+    //   variables: {
+    //     input: enrolment,
+    //   },
+    // }).then((res) => {
+
+    // API.post("enrolmentmanager", "/checkout", {
+    //   headers: {
+    //     Authorization: state.accessToken,
+    //   },
+    //   body: {
+    //     enrolmentId: res.data.createEnrolment.id,
+    //   },
+    // })
+    //   .then((res) => {
+    //     window.location.replace(res.url);
+    //   })
+    //   .catch((err) => {
+    //     console.log("something up with submit");
+    //     console.log(err);
+    //   });
+    fetch("/frontend/checkout/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        'X-CSRFToken': state.csrf_token
       },
-    }).then((res) => {
-      API.post("enrolmentmanager", "/checkout", {
-        headers: {
-          Authorization: state.accessToken,
-        },
-        body: {
-          enrolmentId: res.data.createEnrolment.id,
-        },
+      body: JSON.stringify({
+        bands: wizardState.bands,
+        lessons: wizardState.lessons,
+        giftAidConsent: wizardState.giftaidconsent ? true : false,
+        memberEnrolmentsId: state.userdata["custom:memberid"],
+        instrumentsPlayed: instrumentsPlayed
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
       })
-        .then((res) => {
-          window.location.replace(res.url);
-        })
-        .catch((err) => {
-          console.log("something up with submit");
-          console.log(err);
-        });
-    });
+      .then((data) => {
+        window.location.replace(data.url);
+      })
+      .catch((error) => {
+        console.error("Something went wrong with the submit:");
+        console.error(error);
+      });
 
   };
 

@@ -17,6 +17,7 @@ crispy-forms-gds = "*"
 gunicorn = "*"
 django-vite = "*"
 inertia-django = "*"
+stripe = "*"
 
 [dev-packages]
 boto3 = "*"
