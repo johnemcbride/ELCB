@@ -1,8 +1,8 @@
 from django.db import models
 from django.middleware.csrf import get_token
-
+from wagtail.snippets.views.snippets import SnippetViewSet
 from wagtail.fields import RichTextField
-from wagtail.admin.panels import FieldPanel
+from wagtail.admin.panels import FieldPanel, InlinePanel
 from wagtail.models import Page
 from wagtail.admin.panels import FieldPanel
 from wagtail.images.models import Image
@@ -67,19 +67,62 @@ class MemberManager(models.Manager):
         return self.filter(user=user)
 
 
-@register_snippet
 class Member(models.Model):
+    GENDER_CHOICES = [
+        ('MALE', 'Male'),
+        ('FEMALE', 'Female'),
+        ('OTHER', 'Other'),
+        ('PREFERNOTSAY', 'Prefer Not Say')
+    ]
+    ETHNICITY_CHOICES = [
+        ('prefer_not_say', 'Prefer Not Say'),
+        ('indian', 'Indian'),
+        ('pakistani', 'Pakistani'),
+        ('bangladeshi', 'Bangladeshi'),
+        ('chinese', 'Chinese'),
+        ('any_other_asian_background', 'Any other Asian background'),
+        ('caribbean', 'Caribbean'),
+        ('african', 'African'),
+        ('any_other_black_black_british_or_caribbean_background',
+         'Any other Black, Black British, or Caribbean background'),
+        ('white_and_black_caribbean', 'White and Black Caribbean'),
+        ('white_and_black_african', 'White and Black African'),
+        ('white_and_asian', 'White and Asian'),
+        ('white_english_welsh_scottish_northern_irish_or_british',
+         'White - English, Welsh, Scottish, Northern Irish or British'),
+        ('white_irish', 'White - Irish'),
+        ('white_gypsy_or_irish_traveller', 'White - Gypsy or Irish Traveller'),
+        ('white_roma', 'White - Roma'),
+        ('any_other_white_background', 'Any other White background'),
+        ('arab', 'Arab'),
+        ('any_other_ethnic_group', 'Any other ethnic group'),
+    ]
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='members')
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     date_of_birth = models.DateField(null=True, blank=True)
-
+    gender = models.CharField(
+        max_length=12,
+        choices=GENDER_CHOICES,
+        default='OTHER',
+        help_text="The member's sex at birth"
+    )
+    ethnicity = models.CharField(
+        max_length=54,
+        choices=ETHNICITY_CHOICES,
+        default='Prefer Not Say',
+        help_text="The member's ethnicity"
+    )
     panels = [
         FieldPanel('user'),
         FieldPanel('first_name'),
         FieldPanel('last_name'),
         FieldPanel('date_of_birth'),
+        FieldPanel('gender'),
+        FieldPanel('ethnicity'),
+
+        # InlinePanel('enrolments', label="Enrolments"),  # Add this line
     ]
 
     objects = MemberManager()
@@ -90,6 +133,19 @@ class Member(models.Model):
     @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
+
+
+class MemberSnippetViewSet(SnippetViewSet):
+    model = Member
+    menu_label = "Members"
+    icon = "user"
+    list_display = ["first_name", "last_name",
+                    "ethnicity", "date_of_birth", "gender"]
+    search_fields = ["first_name", "last_name", "ethnicity"]
+    list_filter = ["ethnicity", "gender"]
+
+
+register_snippet(MemberSnippetViewSet)
 
 
 @register_snippet
@@ -129,7 +185,8 @@ class SignUpPage(Page):
     moduleLookUp = {'signup': "SignUp",
                     'signin': "SignIn",
                     'landing': 'NewMemberLanding',
-                    'signout': 'SignOut'
+                    'signout': 'SignOut',
+                    'profile': 'NewMemberProfile'
 
                     }
     logo = models.ForeignKey(
@@ -166,6 +223,8 @@ class SignUpPage(Page):
                 'id': request.user.id,
                 'username': request.user.username,
                 'email': request.user.email,
+                'groups':  request.user.groups.all()
+
                 # Add other fields as needed
             }
             # Get all members associated with the current user
@@ -182,7 +241,12 @@ class SignUpPage(Page):
 
             # load details of primary member
             primary_member = Member.objects.for_user(request.user)
-            context['member'] = {'forename': primary_member[0].first_name}
+            context['member'] = {
+                'forename': primary_member[0].first_name,
+                'surname': primary_member[0].last_name,
+                'dateOfBirth': primary_member[0].date_of_birth,
+                'gender': primary_member[0].gender,
+                'ethnicity': primary_member[0].get_ethnicity_display()}
             context['userdata'] = {'custom:memberid': primary_member[0].id}
         else:
             user_data = None

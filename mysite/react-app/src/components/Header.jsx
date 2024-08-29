@@ -1,4 +1,5 @@
 import * as React from "react";
+import { router } from '@inertiajs/react'
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -134,7 +135,7 @@ function MenuItemWithChildren({ item, onClick }) {
       if (typeof onClick === 'function') {
         onClick()
       }
-      navigate(path);
+      router.visit(path);
 
     } else {
       // Toggle submenu if there are children

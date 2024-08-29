@@ -1,61 +1,35 @@
 import * as React from "react";
-import AppBar from "@mui/material/AppBar";
-
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import Switch from "@mui/material/Switch";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import Paper from "@mui/material/Paper";
-import FormHelperText from "@mui/material/FormHelperText";
-import FormLabel from "@mui/material/FormLabel";
 import Button from "@mui/material/Button";
 import Radio from "@mui/material/Radio";
 import DoneIcon from "@mui/icons-material/Done";
 
-import { Analytics } from "aws-amplify";
 import Stepper from "@mui/material/Stepper";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
 import StepContent from "@mui/material/StepContent";
 import RadioGroup from "@mui/material/RadioGroup";
 import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardActions from "@mui/material/CardActions";
-import CardContent from "@mui/material/CardContent";
-import CardHeader from "@mui/material/CardHeader";
 import CssBaseline from "@mui/material/CssBaseline";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
-import Chip from "@mui/material/Chip";
-import Link from "@mui/material/Link";
-import Divider from "@mui/material/Divider";
 import GlobalStyles from "@mui/material/GlobalStyles";
 import Container from "@mui/material/Container";
-import Stack from "@mui/material/Stack";
-import { Auth } from "aws-amplify";
 import Header from "./Header.jsx";
-import moment from "moment";
-import { API } from "aws-amplify";
+import Footer from "./Footer.jsx";
 import Loading from "./Loading.jsx";
 import CircularProgress from "@mui/material/CircularProgress";
-import * as queries from "../graphql/queries";
-import { useNavigate, Navigate } from "react-router-dom";
-import { createEnrolment as createEnrolmentMutation } from "../graphql/mutations";
 
 import withAuth from './withAuth.jsx';
-import StepWizard from "react-step-wizard";
-import Avatar from "@mui/material/Avatar";
-import IconButton from "@mui/material/IconButton";
-import FormGroup from "@mui/material/FormGroup";
 import Checkbox from "@mui/material/Checkbox";
-import FolderIcon from "@mui/icons-material/Folder";
-import DeleteIcon from "@mui/icons-material/Delete";
-import AddIcon from "@mui/icons-material/Add";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
@@ -63,12 +37,6 @@ import ListItemText from "@mui/material/ListItemText";
 import CancelIcon from "@mui/icons-material/Cancel";
 
 import InstrumentBandPicker from "./userwidgets/InstrumentBandPicker.jsx"
-
-const age = (birthdate) => {
-  return moment().diff(birthdate, "years");
-};
-
-
 
 
 const LandingPage = (props) => {
@@ -107,6 +75,7 @@ const LandingPage = (props) => {
   return isLoaded ? (
 
     <>
+      <Header groups={props.user.groups.map(g => g.name)} />
       <GlobalStyles
         styles={{ ul: { margin: 0, padding: 0, listStyle: "none" } }}
       />
@@ -136,7 +105,7 @@ const LandingPage = (props) => {
 
 
       }
-
+      <Footer />
     </>
   ) : (
     <Loading />

@@ -13,8 +13,10 @@ import Typography from "@mui/material/Typography";
 import Link from "@mui/material/Link";
 import GlobalStyles from "@mui/material/GlobalStyles";
 import Container from "@mui/material/Container";
-import { Auth } from "aws-amplify";
 
+
+import Header from "./Header.jsx";
+import Footer from "./Footer.jsx";
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
@@ -52,10 +54,8 @@ import { updateEnrolment as updateEnrolmentMutation } from "../graphql/mutations
 import { updateMember } from "../graphql/mutations";
 
 
-export default function PricingContent({ groups, session }) {
+export default function PricingContent(props) {
 
-  console.log('Here is session')
-  console.log(session)
   const [isLoaded, setIsLoaded] = React.useState(false);
 
   const handleClose = () => {
@@ -68,23 +68,33 @@ export default function PricingContent({ groups, session }) {
   const [state, setState] = React.useState({});
 
 
+  // React.useEffect(() => {
+  //   Analytics.record({ name: "enrolmentManagementVisit" });
+  //   API.get("enrolmentmanager", "/enrolmentstatus", {
+  //     headers: {
+  //       Authorization: session?.idToken?.getJwtToken(),
+  //     },
+  //   }).then((state) => {
+  //     state.accessToken = session?.idToken?.getJwtToken();
+  //     setState(state);
+  //     setIsLoaded(true);
+  //   }).catch(console.log);;
+  // }, [session]);
+
   React.useEffect(() => {
-    Analytics.record({ name: "enrolmentManagementVisit" });
-    API.get("enrolmentmanager", "/enrolmentstatus", {
-      headers: {
-        Authorization: session?.idToken?.getJwtToken(),
-      },
-    }).then((state) => {
-      state.accessToken = session?.idToken?.getJwtToken();
-      setState(state);
-      setIsLoaded(true);
-    }).catch(console.log);;
-  }, [session]);
+
+    setIsLoaded(true);
+    setState(props);
+    console.log('bong')
+  }, [props]);
+
 
 
 
   return isLoaded ? (
     <>
+
+      <Header groups={props.user.groups.map(g => g.name)} />
       <GlobalStyles
         styles={{ ul: { margin: 0, padding: 0, listStyle: "none" } }}
       />
@@ -146,6 +156,7 @@ export default function PricingContent({ groups, session }) {
 
       </Container >
 
+      <Footer />
     </>
   ) : (
     <Loading />
@@ -153,13 +164,17 @@ export default function PricingContent({ groups, session }) {
 }
 
 function MyBands({ state }) {
+  console.log('In my bands')
+  console.log(state)
   const [instrumentsPlayed, setInstrumentsPlayed] = React.useState([]);
 
   React.useEffect(() => {
     setInstrumentsPlayed(
-      JSON.parse(JSON.stringify(state.currentEnrolment.instrumentsPlayed))
+      //JSON.parse(JSON.stringify(state.currentEnrolment?.instrumentsPlayed))
+      []
     );
-  }, [state.enrolment]);
+    console.log('done')
+  }, [state.currentEnrolment]);
 
   const handleChange = (event) => {
     const selectedBand = event.target.name;

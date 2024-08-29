@@ -24,7 +24,10 @@ class Command(BaseCommand):
 
     def handle(self, raise_error=False, *args, **options):
         # Create the root SignUp page
-
+        # Delete all existing SignUpPages
+        print('Deleting all existing SignUpPages...')
+        SignUpPage.objects.all().delete()
+        print('All existing SignUpPages deleted.')
         print('Findingg root')
         root_page = Page.get_first_root_node()
 
@@ -58,6 +61,12 @@ class Command(BaseCommand):
         landing_page.add_child(instance=signin_page)
         signin_page.save()
         print('Created signin')
+
+        # Create a profile child page
+        profile_page = SignUpPage(title="Profile", slug="profile")
+        landing_page.add_child(instance=profile_page)
+        profile_page.save()
+        print('Created profile')
 
         # Set up the default site
         site = Site.objects.filter(is_default_site=True).first()
