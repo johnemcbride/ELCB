@@ -1,4 +1,5 @@
 from django.db import models
+from wagtail import hooks
 from django.middleware.csrf import get_token
 from wagtail.snippets.views.snippets import SnippetViewSet
 from wagtail.fields import RichTextField
@@ -10,6 +11,8 @@ from wagtail.models import Page
 from wagtail.fields import RichTextField
 from wagtail.images.models import Image
 from inertia import render
+
+from wagtail.admin.menu import SubmenuMenuItem, MenuItem
 from django.db import models
 from django.utils import timezone
 from django.db import models
@@ -35,7 +38,6 @@ class PaymentSettings(BaseSiteSetting):
     ]
 
 
-@register_snippet
 class Term(models.Model):
     name = models.CharField(max_length=100)  # e.g., "Fall 2024"
     start_date = models.DateField()
@@ -60,6 +62,15 @@ class Term(models.Model):
 
     class Meta:
         ordering = ['-start_date']
+
+
+class TermSnippetViewSet(SnippetViewSet):
+    model = Term
+    menu_label = "Terms"
+    icon = "date"
+
+
+register_snippet(TermSnippetViewSet)
 
 
 class MemberManager(models.Manager):
@@ -148,7 +159,6 @@ class MemberSnippetViewSet(SnippetViewSet):
 register_snippet(MemberSnippetViewSet)
 
 
-@register_snippet
 class Enrolment(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -178,6 +188,15 @@ class Enrolment(models.Model):
     class Meta:
         unique_together = ('member', 'term')
         ordering = ['-enrolment_date']
+
+
+class EnrolmentSnippetViewSet(SnippetViewSet):
+    model = Enrolment
+    menu_label = "Enrolments"
+    icon = "doc-full"
+
+
+register_snippet(EnrolmentSnippetViewSet)
 
 
 class SignUpPage(Page):
