@@ -103,7 +103,7 @@ export class InfraStack extends cdk.Stack {
       -e LITESTREAM_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
       -e LITESTREAM_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
       -e AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN \
-      -e AWS_REGION=eu-west-2 \
+      -e AWS_REGION_NAME=eu-west-2 \
       -e REPLICA_URL=${replicaUrl}\
       -e BUCKET_NAME=johnbucket1a1a1a\
       -e CLOUDFRONT_DISTRIBUTION_DOMAINNAME=johntech.net\

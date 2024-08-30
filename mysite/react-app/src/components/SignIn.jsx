@@ -88,8 +88,7 @@ export default function SignIn(props) {
   return isLoaded ? (
     <>
       <ErrorBoundary fallback={<div>Something went wrong</div>}>
-        <Head title="ToDo - Load from title">
-        </Head>
+
         <GlobalStyles
           styles={{ ul: { margin: 0, padding: 0, listStyle: "none" } }}
         />
