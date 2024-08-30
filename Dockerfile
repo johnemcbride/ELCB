@@ -61,8 +61,7 @@ RUN npm run vite-build
 
 # Create and set the working directory
 WORKDIR /app
-# Collect static files for Django
-RUN pipenv run python manage.py collectstatic --noinput
+
 
 # Expose the ports for Nginx and the app
 EXPOSE 443
