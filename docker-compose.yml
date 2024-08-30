@@ -16,3 +16,5 @@ services:
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
       - AWS_REGION=eu-west-2
       - REPLICA_URL=s3://johnbucket1a1a1a/db.sqlite3
+      - BUCKET_NAME=johnbucket1a1a1a
+      - CLOUDFRONT_DISTRIBUTION_DOMAINNAME=localhost
