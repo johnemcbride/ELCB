@@ -3,7 +3,8 @@ from pathlib import Path
 import os
 import sys
 
-
+AWS_S3_SIGNATURE_VERSION = 's3v4'  # Ensure this line is included
+AWS_S3_REGION_NAME = 'eu-west-2'
 mimetypes.add_type("image/svg+xml", ".svg", True)
 mimetypes.add_type("image/svg+xml", ".svgz", True)
 
@@ -159,8 +160,30 @@ USE_I18N = True
 
 USE_TZ = True
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            'bucket_name': os.environ['BUCKET_NAME'],
+            'location': 'media/',
+            'access_key': os.environ['AWS_ACCESS_KEY_ID'],
+            'secret_key': os.environ['AWS_SECRET_ACCESS_KEY'],
+            'security_token': os.environ['AWS_SESSION_TOKEN'],
+            'region_name': os.environ.get('AWS_REGION_NAME', None),
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+
+MEDIA_URL = 'https://' + \
+    os.environ['CLOUDFRONT_DISTRIBUTION_DOMAINNAME']+'/media/'
+
+
+MEDIA_ROOT = None
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"

@@ -128,21 +128,57 @@ export default function SignIn(props) {
               });
               try {
                 console.log('Logging in to DJANGO now')
-                //router.defaults.headers['X-CSRFToken'] = props.csrf_token;
-                const resp = router.post('/frontend/login/',
-                  {
+
+
+                fetch("/frontend/login/", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    'X-CSRFToken': props.csrf_token
+                  },
+                  body: JSON.stringify({
                     username: values.username.trim(),
                     password: values.password.trim()
-                  }, {
-                  headers: {
-                    'X-CSRFToken': props.csrf_token
-                  }
-                }).then(resp => {
-                  // Handle the response here, if needed
-                  console.log(resp)
-                });
-                console.log('posted')
-                console.log(resp)
+                  }),
+                })
+                  .then((response) => {
+                    console.log('What I get back from auth');
+                    console.log(response);
+
+                    // Check if the response is OK (status code 2xx)
+                    if (!response.ok) {
+                      // Attempt to parse the JSON error message from the response
+                      return response.json().then((data) => {
+                        setError({ error: true, message: data.detail || 'Login failed' });
+                        throw new Error(data.detail || 'Login failed'); // Rethrow the error to break out of the chain
+                      });
+                    } else {
+                      return response.json(); // Parse the JSON response
+                    }
+                  })
+                  .then((data) => {
+                    // Assuming a successful login, redirect the user
+                    router.visit('/landing');
+                    setIsSubmitting(false);
+                  })
+                  .catch((error) => {
+                    console.error("Something went wrong with the submit:");
+                    console.error(error);
+                    setIsSubmitting(false);
+                  });
+
+                //       //router.defaults.headers['X-CSRFToken'] = props.csrf_token;
+                //       const resp = fetch.post('/frontend/login/',
+                //        , {
+                //           headers: {
+                //             'X-CSRFToken': props.csrf_token
+                //         }
+                //       }).then(resp => {
+                //   // Handle the response here, if needed
+                //   console.log(resp)
+                // });
+                // console.log('posted')
+                // console.log(resp)
                 // Auth.signIn(values.username.trim(), values.password.trim())
                 //   .then((user) => {
                 //     navigate("/landing");
@@ -332,7 +368,7 @@ export default function SignIn(props) {
             )}
           </Formik>
         </Grid>
-      </ErrorBoundary>
+      </ErrorBoundary >
     </>
   ) : (
     <ErrorBoundary fallback={<div>Something went wrong</div>}>

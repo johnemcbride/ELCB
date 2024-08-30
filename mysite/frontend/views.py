@@ -13,23 +13,22 @@ from django.views.decorators.http import require_POST
 
 
 def login_view(request):
-    if request.method == 'GET':
-        print('GET outta here!')
     if request.method == 'POST':
-        data = json.loads(request.body)
-        username = data.get('username')
-        password = data.get('password')
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            password = data.get('password')
+        except json.JSONDecodeError:
+            return JsonResponse({'detail': 'Invalid JSON'}, status=400)
+
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            # or return some Inertia response
-            return render(request, 'NewMemberLanding')
+            return JsonResponse({'detail': 'Authenticated successfully'}, status=200)
         else:
-            return render(request, 'SignIn', {
-                'error': 'Invalid username or password',
-                'username': username
-            })
-    return render(request, 'Login', {})
+            return JsonResponse({'detail': 'Invalid username or password'}, status=403)
+
+    return JsonResponse({'detail': 'Method not allowed'}, status=405)
 
 
 def logout_view(request):

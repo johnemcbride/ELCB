@@ -42,6 +42,7 @@ cd infra
 npm i
 npm i -g cdk
 cdk deploy
+BUCKET_NAME=johnbucket1a1a1a CLOUDFRONT_DISTRIBUTION_DOMAINNAME=localhost:8000 DEBUG=True AWS_REGION_NAME=eu-west-2 pipenv run python manage.py runserver --nostatic
 ```
 
 # To set secrets
@@ -86,4 +87,5 @@ podman tag elcb:latest 984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest
 podman push 984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest
 
 ### increase podman memory fo th rizzla
+
 podman machine set --cpus 4 --memory 5012

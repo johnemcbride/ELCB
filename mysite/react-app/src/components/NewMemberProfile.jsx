@@ -53,8 +53,9 @@ import FormControl, { formControlClasses } from "@mui/material/FormControl";
 import { updateEnrolment as updateEnrolmentMutation } from "../graphql/mutations";
 import { updateMember } from "../graphql/mutations";
 
+import withAuth from './withAuth.jsx';
 
-export default function PricingContent(props) {
+function PricingContent(props) {
 
   const [isLoaded, setIsLoaded] = React.useState(false);
 
@@ -739,3 +740,6 @@ function ManageSiblings({ setError, user }) {
     </Accordion>
   );
 }
+
+
+export default withAuth(PricingContent)

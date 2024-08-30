@@ -105,6 +105,9 @@ export class InfraStack extends cdk.Stack {
       -e AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN \
       -e AWS_REGION=eu-west-2 \
       -e REPLICA_URL=${replicaUrl}\
+      -e BUCKET_NAME=johnbucket1a1a1a\
+      -e CLOUDFRONT_DISTRIBUTION_DOMAINNAME=johntech.net
+
       984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest
     # Associate Elastic IP
     INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)

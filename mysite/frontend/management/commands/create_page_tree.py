@@ -5,10 +5,17 @@ from django.contrib.contenttypes.models import ContentType
 
 from django.core.management.base import BaseCommand  # Updated path for BaseCommand
 from wagtail.models import Page, Site
+from wagtail.contrib.redirects.models import Redirect
 from wagtail.images.models import Image
 
 from frontend.models import (
-    SignUpPage
+    SignUpPage,
+    SignInPage,
+    SignOutPage,
+    EnrolmentPage,
+    MemberProfilePage,
+    ELCBHomePage
+
 )
 
 APP_DIR = Path(__file__).resolve().parent.parent.parent
@@ -27,6 +34,10 @@ class Command(BaseCommand):
         # Delete all existing SignUpPages
         print('Deleting all existing SignUpPages...')
         SignUpPage.objects.all().delete()
+        SignInPage.objects.all().delete()
+        EnrolmentPage.objects.all().delete()
+        SignOutPage.objects.all().delete()
+        MemberProfilePage.objects.all().delete()
         print('All existing SignUpPages deleted.')
         print('Findingg root')
         root_page = Page.get_first_root_node()
@@ -38,32 +49,31 @@ class Command(BaseCommand):
             print("Root node exists.")
 
         print('F oundroot')
-        # Cr      print('Findingg root'eate a landing child page
-        landing_page = SignUpPage(title="Landing", slug="")
-        landing_page2 = SignUpPage(title="Landing", slug="landing")
+
+        landing_page = ELCBHomePage(title="Home", slug="")
         print('Created lp')
         root_page.add_child(instance=landing_page)
         print('added as child of root')
         landing_page.save()
         print('Created landing')
 
+        Redirect.objects.create(old_path='/', redirect_link='/signin')
+
         # Create a signup child page
         signup_page = SignUpPage(title="Sign Up", slug="signup")
         landing_page.add_child(instance=signup_page)
-        signout_page = SignUpPage(title="Sign Out", slug="signout")
+        signout_page = SignOutPage(title="Sign Out", slug="signout")
         landing_page.add_child(instance=signout_page)
-        landing_page.add_child(instance=landing_page2)
-        signup_page.save()
-        print('Created signup')
 
-        # Create a signin child page
-        signin_page = SignUpPage(title="Sign In", slug="signin")
+        landing_page2 = EnrolmentPage(title="Landing", slug="landing")
+        landing_page.add_child(instance=landing_page2)
+
+        signin_page = SignInPage(title="Sign In", slug="signin")
         landing_page.add_child(instance=signin_page)
-        signin_page.save()
-        print('Created signin')
+        print('Created enrolment')
 
         # Create a profile child page
-        profile_page = SignUpPage(title="Profile", slug="profile")
+        profile_page = MemberProfilePage(title="Profile", slug="profile")
         landing_page.add_child(instance=profile_page)
         profile_page.save()
         print('Created profile')

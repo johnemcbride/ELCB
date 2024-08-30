@@ -11,7 +11,7 @@ from wagtail.models import Page
 from wagtail.fields import RichTextField
 from wagtail.images.models import Image
 from inertia import render
-
+from django.core.exceptions import ValidationError
 from wagtail.admin.menu import SubmenuMenuItem, MenuItem
 from django.db import models
 from django.utils import timezone
@@ -199,44 +199,28 @@ class EnrolmentSnippetViewSet(SnippetViewSet):
 register_snippet(EnrolmentSnippetViewSet)
 
 
-class SignUpPage(Page):
+#
+#  PAGE TYPES
+#
 
-    moduleLookUp = {'signup': "SignUp",
-                    'signin': "SignIn",
-                    'landing': 'NewMemberLanding',
-                    'signout': 'SignOut',
-                    'profile': 'NewMemberProfile'
+class ELCBPage(Page):
 
-                    }
-    logo = models.ForeignKey(
-        Image,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name='+',
-        help_text="Upload a logo image that will be displayed on the page."
-    )
-    welcome_message = RichTextField(
-        blank=True,
-        help_text="Enter a welcome message to greet visitors."
-    )
-
-    content_panels = Page.content_panels + [
-        FieldPanel('logo'),
-        FieldPanel('welcome_message'),
-    ]
+    subpage_types = None
 
     class Meta:
-        verbose_name = "SignUp Page"
+        abstract = True
+
+    def clean(self):
+        super().clean()
+        if not self.pk and self.__class__.objects.exists():
+            raise ValidationError(
+                f"A {self.__class__.__name__} instance already exists.")
 
     def get_context(self, request):
-        # Get the default context from the parent class
         context = super().get_context(request)
         context['csrf_token'] = get_token(request)
 
-        # Set the current term in the context
-        current_term = Term.get_current_term()
-        # Add the user object to the context
+        # Add additional context common to all ELCB pages here
         if request.user.is_authenticated:
             user_data = {
                 'id': request.user.id,
@@ -249,14 +233,6 @@ class SignUpPage(Page):
             # Get all members associated with the current user
             members = Member.objects.for_user(request.user)
             context['members'] = members
-
-            # Get enrollments for each member in the current term
-            enrolment = None
-            if current_term:
-                enrolment = Enrolment.objects.filter(
-                    member=members[0], term=current_term).first()
-
-            context['currentEnrolment'] = enrolment
 
             # load details of primary member
             primary_member = Member.objects.for_user(request.user)
@@ -272,6 +248,97 @@ class SignUpPage(Page):
             context['member'] = None
 
         context['user'] = user_data
+
+        # Set the current term in the context
+        current_term = Term.get_current_term()
+        context['currentterm'] = {'term': current_term}
+
+        return context
+
+    def serve(self, request):
+        context = self.get_context(request)
+        del context['request']
+        return render(request, self.react_module_name, context)
+
+    def serve_preview(self, request, mode_name):
+        return self.serve(request)
+
+
+class SignUpPage(ELCBPage):
+
+    react_module_name = "SignUp"
+
+    welcome_message = RichTextField(
+        blank=True,
+        help_text="Enter a welcome message to greet visitors."
+    )
+
+    content_panels = Page.content_panels + [
+
+        FieldPanel('welcome_message'),
+    ]
+
+    class Meta:
+        verbose_name = "SignUp Page"
+
+    def get_context(self, request):
+        # Get the default context from the parent class
+        context = super().get_context(request)
+        context['welcome_message'] = self.welcome_message
+        return context
+
+
+class SignInPage(ELCBPage):
+
+    react_module_name = "SignIn"
+
+    class Meta:
+        verbose_name = "SignIn Page"
+
+    def get_context(self, request):
+        # Get the default context from the parent class
+        context = super().get_context(request)
+        # future
+        return context
+
+
+class SignOutPage(ELCBPage):
+
+    react_module_name = "SignOut"
+
+    class Meta:
+        verbose_name = "SignOut Page"
+
+    def get_context(self, request):
+        # Get the default context from the parent class
+        context = super().get_context(request)
+        # future
+        return context
+
+
+class EnrolmentPage(ELCBPage):
+
+    react_module_name = "NewMemberLanding"
+
+    class Meta:
+        verbose_name = "Enrolment Page"
+
+    def get_context(self, request):
+        # Get the default context from the parent class
+        context = super().get_context(request)
+
+        # Add the user object to the context
+        if request.user.is_authenticated:
+            # Get enrollments for each member in the current term
+            enrolment = None
+            current_term = context['currentterm']['term']
+            if current_term:
+                enrolment = Enrolment.objects.filter(
+                    member=context['members'][0], term=current_term).first()
+
+            context['currentEnrolment'] = enrolment
+        else:
+            context['currentEnrolment'] = None
 
         context['prodCat'] = {
             "products": {
@@ -683,25 +750,26 @@ class SignUpPage(Page):
             },
             "ratesApplied": "full"
         }
-        context['currentterm'] = {'term': current_term}
-
-        # Add your custom context data
-        slug = self.slug
-        module_name = self.moduleLookUp.get(slug)
-        context['module_name'] = module_name
-        context['welcome_message'] = self.welcome_message
 
         return context
 
-    def serve(self, request):
 
-        context = self.get_context(request)
-        del context['request']
-        module_name = context.get('module_name')
+class MemberProfilePage(ELCBPage):
 
-        # 'Home' corresponds to your React component
-        return render(request, module_name, context)
+    react_module_name = "NewMemberProfile"
 
-    def serve_preview(self, request, mode_name):
+    class Meta:
+        verbose_name = "Profile Page"
 
-        return self.serve(request)
+    def get_context(self, request):
+        # Get the default context from the parent class
+        context = super().get_context(request)
+        # future
+        return context
+
+
+class ELCBHomePage(ELCBPage):
+    react_module_name = 'SignIn'
+
+    class Meta:
+        verbose_name = "Home Page"
