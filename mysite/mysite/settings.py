@@ -167,9 +167,9 @@ STORAGES = {
         "OPTIONS": {
             'bucket_name': os.environ['BUCKET_NAME'],
             'location': 'media/',
-            'access_key': os.environ['AWS_ACCESS_KEY_ID'],
-            'secret_key': os.environ['AWS_SECRET_ACCESS_KEY'],
-            'security_token': os.environ['AWS_SESSION_TOKEN'],
+            'access_key': os.environ.get('AWS_ACCESS_KEY_ID', None),
+            'secret_key': os.environ.get('AWS_SECRET_ACCESS_KEY', None),
+            'security_token': os.environ.get('AWS_SESSION_TOKEN', None),
             'region_name': os.environ.get('AWS_REGION_NAME', None),
         },
     },
