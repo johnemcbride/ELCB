@@ -7,9 +7,7 @@ AWS_S3_SIGNATURE_VERSION = 's3v4'  # Ensure this line is included
 AWS_S3_REGION_NAME = 'eu-west-2'
 mimetypes.add_type("image/svg+xml", ".svg", True)
 mimetypes.add_type("image/svg+xml", ".svgz", True)
-
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 SECRET_KEY = 'django-insecure-6kk)r$tlbt#8g@9*=z#)ybh&85jdn+5gp=#*91o8*$$d=c192a'
 
 
@@ -19,21 +17,14 @@ def str_to_bool(value: str) -> bool:
 
 
 DEBUG = str_to_bool(os.environ.get('DEBUG', "False"))
-
 ALLOWED_HOSTS = ['*']
-
-
 CSRF_TRUSTED_ORIGINS = ['http://localhost']
-
 WHITENOISE_MAX_AGE = 60*60*24
-
 STATIC_URL = "/static/"
 INSTALLED_APPS = [
-
     'jazzmin',
     'django_vite',
     'inertia',
-    'yapp',
     'cms',
     'frontend',
     'nested_admin',

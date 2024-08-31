@@ -1,0 +1,16 @@
+/* Import Josefin Sans from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400&display=swap');
+
+
+:root {
+    --w-font-sans: 'Josefin Sans', sans-serif;
+    --w-font-mono: Courier;
+    --w-color-primary: #006A32;
+
+}
+
+:root,
+:host {
+    /* Reduce the UI density by 20% for users of the default theme. */
+    --w-density-factor: 0.5;
+}

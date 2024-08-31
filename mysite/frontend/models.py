@@ -70,9 +70,6 @@ class TermSnippetViewSet(SnippetViewSet):
     icon = "date"
 
 
-register_snippet(TermSnippetViewSet)
-
-
 class MemberManager(models.Manager):
     def for_user(self, user):
         return self.filter(user=user)
@@ -160,9 +157,6 @@ class MemberSnippetViewSet(SnippetViewSet):
     list_filter = ["ethnicity", "gender"]
 
 
-register_snippet(MemberSnippetViewSet)
-
-
 class Enrolment(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -198,9 +192,6 @@ class EnrolmentSnippetViewSet(SnippetViewSet):
     model = Enrolment
     menu_label = "Enrolments"
     icon = "doc-full"
-
-
-register_snippet(EnrolmentSnippetViewSet)
 
 
 #

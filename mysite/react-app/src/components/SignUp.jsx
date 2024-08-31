@@ -82,7 +82,6 @@ export default function SignUpSide(props) {
 
   console.log('Prop test')
   console.log(props)
-  Analytics.record({ name: "signUpVisit" });
   const [error, setError] = useState({ error: false, message: "" });
   const [formObject, setFormObject] = useState({});
 
