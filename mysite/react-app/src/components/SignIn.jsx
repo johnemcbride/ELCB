@@ -294,12 +294,12 @@ export default function SignIn(props) {
                         fullWidth
                         variant="contained"
                         sx={{ mt: 3, mb: 2 }}
-                      // disabled={
-                      //   !isValid ||
-                      //   (Object.keys(touched).length === 0 &&
-                      //     touched.constructor === Object) ||
-                      //   isSubmitting
-                      // }
+                        disabled={
+                          !isValid ||
+                          (Object.keys(touched).length === 0 &&
+                            touched.constructor === Object) ||
+                          isSubmitting
+                        }
                       >
                         {isSubmitting ? (
                           <CircularProgress

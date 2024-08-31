@@ -28,6 +28,7 @@ import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import StepWizard from "react-step-wizard";
+import { router } from '@inertiajs/react'
 
 const ethnicGroups = [
   "Prefer Not Say",
@@ -285,9 +286,9 @@ export default function SignUpSide(props) {
                     sx={{ mt: 1 }}
                   >
                     <StepWizard>
-                      <Step1 {...props} />
-                      <Step2 {...props} flashError={flashError} />
-                      <Step3 {...props} flashError={flashError} />
+                      <Step1 {...props} {...wagtailProps} />
+                      <Step2 {...props} {...wagtailProps} flashError={flashError} />
+                      <Step3 {...props}  {...wagtailProps} flashError={flashError} />
                     </StepWizard>
                   </Box>
                   <Grid item>
@@ -564,26 +565,71 @@ function Step2({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   function handleRegisterUser() {
-    Auth.signUp({
-      username: values.username.trim(),
-      password: values.password.trim(),
-      attributes: {
+    // Auth.signUp({
+    //   username: values.username.trim(),
+    //   password: values.password.trim(),
+    //   attributes: {
+    //     email: values.email,
+    //     gender: values.sex,
+    //     birthdate: values.dateofbirth.format("MM/DD/yyyy"),
+    //     name: values.forename,
+    //     family_name: values.surname,
+    //     "custom:ethnicity": values.ethnicity,
+    //   },
+    //   autoSignIn: {
+    //     // optional - enables auto sign in after user is confirmed
+    //     enabled: true,
+    //   },
+    // })
+    //   .then(() => {
+    //     props.nextStep();
+    //   })
+    //   .catch(flashError);
+
+    fetch("/frontend/signup/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        'X-CSRFToken': props.csrf_token
+      },
+      body: JSON.stringify({
+        username: values.username.trim(),
+        password: values.password.trim(),
         email: values.email,
         gender: values.sex,
         birthdate: values.dateofbirth.format("MM/DD/yyyy"),
         name: values.forename,
         family_name: values.surname,
-        "custom:ethnicity": values.ethnicity,
-      },
-      autoSignIn: {
-        // optional - enables auto sign in after user is confirmed
-        enabled: true,
-      },
+        ethnicity: values.ethnicity,
+      }),
     })
-      .then(() => {
-        props.nextStep();
+      .then((response) => {
+        console.log('What I get back from register');
+        console.log(response);
+
+        // Check if the response is OK (status code 2xx)
+        if (!response.ok) {
+          // Attempt to parse the JSON error message from the response
+          return response.json().then((data) => {
+            flashError({ error: true, message: data.detail || 'Login failed' });
+            throw new Error(data.detail || 'Signup failed'); // Rethrow the error to break out of the chain
+          });
+        } else {
+          return response.json(); // Parse the JSON response
+        }
       })
-      .catch(flashError);
+      .then((data) => {
+        // Assuming a successful login, redirect the user
+        router.visit('/landing');
+        setIsSubmitting(false);
+      })
+      .catch((error) => {
+        console.error("Something went wrong with the submit:");
+        console.error(error);
+        setIsSubmitting(false);
+      });
+
+
   }
   return (
     <>
@@ -684,23 +730,27 @@ function Step3({
 }) {
   const navigate = useNavigate();
   function handleConfirmCode() {
-    Auth.confirmSignUp(values.username, values.code)
-      .then(() => {
-        console.log(
-          "SIgn up confirmed, Hub listenign for event before navigating on"
-        );
-      })
-      .catch((error) => {
-        console.log("grrrrr");
-        flashError(error);
-      });
+    // Auth.confirmSignUp(values.username, values.code)
+    //   .then(() => {
+    //     console.log(
+    //       "SIgn up confirmed, Hub listenign for event before navigating on"
+    //     );
+    //   })
+    //   .catch((error) => {
+    //     console.log("grrrrr");
+    //     flashError(error);
+    //   });
+
+    //Bypassing
+    router.visit('/landing')
   }
 
   function handleResendCode() {
-    Auth.resendSignUp(values.username).catch((error) => {
-      console.log("grrrrr");
-      flashError(error);
-    });
+    // Auth.resendSignUp(values.username).catch((error) => {
+    //   console.log("grrrrr");
+    //   flashError(error);
+    // });
+    flashError('TODO: implement code thing')
   }
   return (
     <>

@@ -108,6 +108,9 @@ class Member(models.Model):
         ('arab', 'Arab'),
         ('any_other_ethnic_group', 'Any other ethnic group'),
     ]
+
+    siblings = models.BooleanField(default=False)  # New field added
+
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='members')
     first_name = models.CharField(max_length=100)
@@ -132,6 +135,7 @@ class Member(models.Model):
         FieldPanel('date_of_birth'),
         FieldPanel('gender'),
         FieldPanel('ethnicity'),
+        FieldPanel('siblings'),
 
         # InlinePanel('enrolments', label="Enrolments"),  # Add this line
     ]
@@ -150,8 +154,8 @@ class MemberSnippetViewSet(SnippetViewSet):
     model = Member
     menu_label = "Members"
     icon = "user"
-    list_display = ["first_name", "last_name",
-                    "ethnicity", "date_of_birth", "gender"]
+    list_display = ["user", "first_name", "last_name",
+                    "ethnicity", "date_of_birth", "gender", "siblings"]
     search_fields = ["first_name", "last_name", "ethnicity"]
     list_filter = ["ethnicity", "gender"]
 
@@ -241,7 +245,8 @@ class ELCBPage(Page):
                 'surname': primary_member[0].last_name,
                 'dateOfBirth': primary_member[0].date_of_birth,
                 'gender': primary_member[0].gender,
-                'ethnicity': primary_member[0].get_ethnicity_display()}
+                'ethnicity': primary_member[0].get_ethnicity_display(),
+                'siblings': primary_member[0].siblings}
             context['userdata'] = {'custom:memberid': primary_member[0].id}
         else:
             user_data = None

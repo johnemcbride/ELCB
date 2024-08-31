@@ -126,7 +126,7 @@ function PricingContent(props) {
             />
 
             {age(state.member?.dateOfBirth) < 30 ? (
-              <ManageSiblings user={state.member} setError={setError} />
+              <ManageSiblings {...props} user={state.member} setError={setError} />
             ) : null}
             {state.currentEnrolment &&
               state.currentEnrolment?.bands !== "none" ? (
@@ -356,6 +356,8 @@ function PersonalDetails({ member }) {
     });
   };
 
+  console.log('Here is what is in member')
+  console.log(member)
   const initialValues = {
     forename: member?.forename || "",
     surname: member?.surname || "",
@@ -664,20 +666,55 @@ function PersonalDetails({ member }) {
   );
 }
 
-function ManageSiblings({ setError, user }) {
+function ManageSiblings({ setError, user, csrf_token }) {
   const [checked, setChecked] = React.useState(false);
   const toggleSiblings = () => {
-    API.graphql({
-      query: updateMember,
-      variables: {
-        input: { id: user.id, siblings: user.siblings ? false : true },
+    // API.graphql({
+    //   query: updateMember,
+    //   variables: {
+    //     input: { id: user.id, siblings: user.siblings ? false : true },
+    //   },
+    // })
+    //   .then
+    //   //(resp) => alert(JSON.stringify(resp))
+    //   ()
+    //   .catch((error) => {
+    //     setError({ error: true, message: error.message });
+    //   });
+
+    fetch("/frontend/member/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        'X-CSRFToken': csrf_token
       },
+      body: JSON.stringify({
+        siblings: user.siblings ? false : true,
+      }),
     })
-      .then
-      //(resp) => alert(JSON.stringify(resp))
-      ()
+      .then((response) => {
+        console.log('What I get back from register');
+        console.log(response);
+
+        // Check if the response is OK (status code 2xx)
+        if (!response.ok) {
+          // Attempt to parse the JSON error message from the response
+          return response.json().then((data) => {
+            setError({ error: true, message: data.detail || 'Login failed' });
+            throw new Error(data.detail || 'Signup failed'); // Rethrow the error to break out of the chain
+          });
+        } else {
+          return response.json(); // Parse the JSON response
+        }
+      })
+      .then((data) => {
+
+      })
       .catch((error) => {
-        setError({ error: true, message: error.message });
+        console.error("Something went wrong with the submit:");
+        console.error(error);
+        setError({ error: true, message: error || 'Login failed' });
+
       });
   };
   //
