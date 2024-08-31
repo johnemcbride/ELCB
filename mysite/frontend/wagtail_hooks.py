@@ -14,6 +14,12 @@ def global_admin_css():
     return format_html('<link rel="stylesheet" href="{}">', static('css/wagtail_admin_custom.css'))
 
 
+@hooks.register('construct_main_menu')
+def hide_help_menu(request, menu_items):
+    menu_items[:] = [
+        item for item in menu_items if item.name not in ('help', 'documents')]
+
+
 class BandMenuGroup(SnippetViewSetGroup):
     menu_label = "Band"
     menu_icon = "bars"  # change as required
@@ -21,7 +27,8 @@ class BandMenuGroup(SnippetViewSetGroup):
     items = (
         EnrolmentSnippetViewSet,
         MemberSnippetViewSet,
-        TermSnippetViewSet
+        TermSnippetViewSet,
+
     )
 
 
