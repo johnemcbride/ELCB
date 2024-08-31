@@ -1,110 +1,33 @@
 import * as React from "react";
-import AppBar from "@mui/material/AppBar";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardActions from "@mui/material/CardActions";
-import CardContent from "@mui/material/CardContent";
-import CardHeader from "@mui/material/CardHeader";
 import CssBaseline from "@mui/material/CssBaseline";
-import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
-import Chip from "@mui/material/Chip";
 import Link from "@mui/material/Link";
 import GlobalStyles from "@mui/material/GlobalStyles";
 import Container from "@mui/material/Container";
-import Stack from "@mui/material/Stack";
-import { Auth } from "aws-amplify";
+
 import Header from "./Header.jsx";
-import moment from "moment";
-import { API } from "aws-amplify";
-import Loading from "./Loading.jsx";
-import CircularProgress from "@mui/material/CircularProgress";
-import * as queries from "../graphql/queries";
-import { useNavigate, Navigate } from "react-router-dom";
-import { createEnrolment as createEnrolmentMutation } from "../graphql/mutations";
+import Footer from "./Footer.jsx";
 
-import Avatar from "@mui/material/Avatar";
-import IconButton from "@mui/material/IconButton";
-import FormGroup from "@mui/material/FormGroup";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
-import FolderIcon from "@mui/icons-material/Folder";
-import DeleteIcon from "@mui/icons-material/Delete";
-import AddIcon from "@mui/icons-material/Add";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
-const age = (birthdate) => {
-  return moment().diff(birthdate, "years");
-};
 
-function Copyright(props) {
+export default function PricingContent(props) {
+
   return (
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      align="center"
-      {...props}
-    >
-      {"Copyright © "}
-      <Link color="inherit" to="https://www.eastlondoncommunityband.co.uk">
-        East London Community Band
-      </Link>{" "}
-      {new Date().getFullYear()}
-      {"."}
-    </Typography>
-  );
-}
-
-export default function PricingContent() {
-  const [user, setUser] = React.useState({});
-  const [groups, setGroups] = React.useState([]);
-  const [session, setSession] = React.useState({});
-  const [isLoaded, setIsLoaded] = React.useState(false);
-  const [isEnrolled, setIsEnrolled] = React.useState(false);
-  const [enrolment, setEnrolment] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsLoaded(true);
-  }, []);
-  return isLoaded ? (
     <>
       <GlobalStyles
         styles={{ ul: { margin: 0, padding: 0, listStyle: "none" } }}
       />
       <CssBaseline />
-      <Header groups={groups} />
 
-      <HeroUnenrolled user={user} />
+      <Header groups={props.user.groups.map(g => g.name)} />
+
+      <HeroUnenrolled />
 
       <Footer />
     </>
-  ) : (
-    <Loading />
-  );
+  )
 }
 
-function Footer() {
-  return (
-    <Container
-      maxWidth="md"
-      component="footer"
-      sx={{
-        borderTop: (theme) => `1px solid ${theme.palette.divider}`,
-        mt: 8,
-        py: [1, 1],
-      }}
-    >
-      <Copyright sx={{ mt: 0 }} />
-    </Container>
-  );
-}
-
-function HeroUnenrolled({ user }) {
+function HeroUnenrolled() {
   return (
     <Container
       // disableGutters
@@ -235,42 +158,5 @@ function HeroUnenrolled({ user }) {
         help.
       </Typography>
     </Container>
-  );
-}
-
-function LoadingButton({ session, tier }) {
-  const [isLoading, setIsloading] = React.useState(false);
-  return (
-    <Button
-      disabled={isLoading}
-      onClick={() => {
-        setIsloading(true);
-        // create enrolment
-        API.graphql({
-          query: createEnrolmentMutation,
-          variables: {
-            input: { bands: tier.bands, lessons: tier.lessons },
-          },
-        }).then((res) => {
-          API.post("checkout", "/checkout", {
-            body: {
-              accesskey: session.accessToken,
-              enrolmentId: res.data.createEnrolment.id,
-            },
-          }).then((res) => {
-            window.location.replace(res.url);
-          });
-        });
-      }}
-      fullWidth
-      variant={tier.buttonVariant}
-    >
-      {isLoading ? (
-        <>
-          <CircularProgress size={12} /> &nbsp;
-        </>
-      ) : null}
-      {tier.buttonText}
-    </Button>
   );
 }

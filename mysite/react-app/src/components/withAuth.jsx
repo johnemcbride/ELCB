@@ -1,13 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { usePage } from '@inertiajs/react';
-
+import React from "react";
 import { router } from '@inertiajs/react';
-
-
 const withAuth = (WrappedComponent) => {
     return (props) => {
-
-
         if (props.user === null) {
             console.log('User null')
             router.visit("/signin");
@@ -17,5 +11,4 @@ const withAuth = (WrappedComponent) => {
         }
     };
 };
-
 export default withAuth;

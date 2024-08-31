@@ -1,8 +1,5 @@
 import * as React from "react";
-import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
-import omitDeep from "omit-deep";
-import { Analytics } from "aws-amplify";
 import Loading from "./Loading.jsx";
 import Button from "@mui/material/Button";
 import Switch from "@mui/material/Switch";
@@ -10,25 +7,20 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Grid from "@mui/material/Grid";
 import MusicNote from "@mui/icons-material/MusicNote";
 import Typography from "@mui/material/Typography";
-import Link from "@mui/material/Link";
 import GlobalStyles from "@mui/material/GlobalStyles";
 import Container from "@mui/material/Container";
-
-
 import Header from "./Header.jsx";
 import Footer from "./Footer.jsx";
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import * as queries from "../graphql/queries";
-import { API } from "aws-amplify";
-import { useNavigate, Navigate } from "react-router-dom";
+
 import Snackbar from "@mui/material/Snackbar";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import PeopleIcon from "@mui/icons-material/PeopleOutlined";
 import Avatar from "@mui/material/Avatar";
-import { Formik, ErrorMessage, Field, setIn } from "formik";
+import { Formik, ErrorMessage } from "formik";
 
 import TextField from "@mui/material/TextField";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -43,16 +35,10 @@ import Alert from "@mui/material/Alert";
 import * as yup from "yup";
 import { FormHelperText } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
-import Paper from "@mui/material/Paper";
-
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import InputLabel from "@mui/material/InputLabel";
-import FormControl, { formControlClasses } from "@mui/material/FormControl";
-
-import { updateEnrolment as updateEnrolmentMutation } from "../graphql/mutations";
-import { updateMember } from "../graphql/mutations";
-
+import FormControl from "@mui/material/FormControl";
 import withAuth from './withAuth.jsx';
 
 function PricingContent(props) {
@@ -68,19 +54,6 @@ function PricingContent(props) {
   const [error, setError] = React.useState({ error: false, message: "" });
   const [state, setState] = React.useState({});
 
-
-  // React.useEffect(() => {
-  //   Analytics.record({ name: "enrolmentManagementVisit" });
-  //   API.get("enrolmentmanager", "/enrolmentstatus", {
-  //     headers: {
-  //       Authorization: session?.idToken?.getJwtToken(),
-  //     },
-  //   }).then((state) => {
-  //     state.accessToken = session?.idToken?.getJwtToken();
-  //     setState(state);
-  //     setIsLoaded(true);
-  //   }).catch(console.log);;
-  // }, [session]);
 
   React.useEffect(() => {
 
@@ -120,7 +93,7 @@ function PricingContent(props) {
           >
 
             <PersonalDetails
-
+              {...props}
               member={state.member}
               setError={setError}
             />
@@ -203,20 +176,20 @@ function MyBands({ state }) {
       });
     }
 
-    API.graphql({
-      query: updateEnrolmentMutation,
-      variables: {
-        input: {
-          id: state.currentEnrolment.id,
-          instrumentsPlayed: newInstruments,
-        },
-      },
-    }).then((res) => {
-      setInstrumentsPlayed(
-        omitDeep(res.data.updateEnrolment.instrumentsPlayed, ["__typename"])
-      );
-      // setInstrumentsPlayed(res.data.updateEnrolment.instrumentsPlayed);
-    });
+    // API.graphql({
+    //   query: updateEnrolmentMutation,
+    //   variables: {
+    //     input: {
+    //       id: state.currentEnrolment.id,
+    //       instrumentsPlayed: newInstruments,
+    //     },
+    //   },
+    // }).then((res) => {
+    //   setInstrumentsPlayed(
+    //     omitDeep(res.data.updateEnrolment.instrumentsPlayed, ["__typename"])
+    //   );
+    //   // setInstrumentsPlayed(res.data.updateEnrolment.instrumentsPlayed);
+    // });
   };
   return (
     <Accordion
@@ -297,10 +270,10 @@ function MyBands({ state }) {
   );
 }
 
-function PersonalDetails({ member }) {
+function PersonalDetails({ setError, member, csrf_token }) {
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const navigate = useNavigate();
+
 
   const minDate = new Date(
     new Date(new Date().setFullYear(new Date().getFullYear() - 100)).setDate(1)
@@ -336,24 +309,52 @@ function PersonalDetails({ member }) {
     };
 
 
-    // Auth.updateUserAttributes(user, updated)
-    //   .then((user) => {
-    //     setIsSubmitting(false);
-    //     navigate(0);
-    //   })
-    //   .catch((error) => {
-    //     setError({ error: true, message: error.message });
-    //     setIsSubmitting(false);
-    //   });
-    API.graphql({
-      query: updateMember,
-      variables: {
-        input: updated,
+    // API.graphql({
+    //   query: updateMember,
+    //   variables: {
+    //     input: updated,
+    //   },
+    // }).then((member) => {
+    //   setIsSubmitting(false);
+    //   navigate(0);
+    // });
+
+
+    fetch("/frontend/member/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        'X-CSRFToken': csrf_token
       },
-    }).then((member) => {
-      setIsSubmitting(false);
-      navigate(0);
-    });
+      body: JSON.stringify(updated),
+    })
+      .then((response) => {
+        console.log('What I get back from register');
+        console.log(response);
+        setIsSubmitting(false);
+
+        // Check if the response is OK (status code 2xx)
+        if (!response.ok) {
+          // Attempt to parse the JSON error message from the response
+          return response.json().then((data) => {
+          });
+        } else {
+          return response.json(); // Parse the JSON response
+        }
+      })
+      .then((data) => {
+
+      })
+      .catch((error) => {
+        console.error("Something went wrong with the submit:");
+        setError(error);
+        setIsSubmitting(false);
+
+      });
+
+
+
+
   };
 
   console.log('Here is what is in member')
@@ -513,7 +514,9 @@ function PersonalDetails({ member }) {
                     <DatePicker
                       ref={dob}
                       onChange={(value) => {
-                        setFieldValue("dateOfBirth", value, true);
+                        const formattedDate = moment(value).format('YYYY-MM-DD');
+
+                        setFieldValue("dateOfBirth", formattedDate, true);
                         setFieldTouched("dateOfBirth", true, false);
                       }}
                       inputFormat="DD/MM/yyyy"
@@ -669,18 +672,6 @@ function PersonalDetails({ member }) {
 function ManageSiblings({ setError, user, csrf_token }) {
   const [checked, setChecked] = React.useState(false);
   const toggleSiblings = () => {
-    // API.graphql({
-    //   query: updateMember,
-    //   variables: {
-    //     input: { id: user.id, siblings: user.siblings ? false : true },
-    //   },
-    // })
-    //   .then
-    //   //(resp) => alert(JSON.stringify(resp))
-    //   ()
-    //   .catch((error) => {
-    //     setError({ error: true, message: error.message });
-    //   });
 
     fetch("/frontend/member/", {
       method: "POST",

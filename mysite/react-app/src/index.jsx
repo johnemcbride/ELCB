@@ -5,11 +5,9 @@ import "@fontsource/josefin-sans";
 import { createRoot } from 'react-dom/client'
 import { createInertiaApp } from '@inertiajs/react'
 import "./index.css";
-import { Amplify } from "aws-amplify";
 import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 
-import config from "./aws-exports";
 import { BrowserRouter } from "react-router-dom";
 
 
@@ -59,14 +57,6 @@ let theme = createTheme({
 });
 
 
-Amplify.configure(config);
-
-// const root = ReactDOM.createRoot(document.getElementById("root"));
-// root.render(
-//   <BrowserRouter basename='/cms/pages/3/edit/preview/'>
-//     <App />
-//   </BrowserRouter>
-// );
 
 
 function fallbackRender({ error, resetErrorBoundary }) {

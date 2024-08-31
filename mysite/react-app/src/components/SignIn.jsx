@@ -1,23 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
 import { router } from '@inertiajs/react'
 import { ErrorBoundary } from "react-error-boundary";
 
-import { Head } from '@inertiajs/react';
-import { Analytics } from "aws-amplify";
 import Link from "@mui/material/Link";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Toolbar from "@mui/material/Toolbar";
-import Avatar from "@mui/material/Avatar";
 import TextField from "@mui/material/TextField";
 import Paper from "@mui/material/Paper";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
-import { Formik, ErrorMessage, Field } from "formik";
-import { Auth } from "aws-amplify";
+import { Formik, ErrorMessage } from "formik";
 import * as yup from "yup";
 import CircularProgress from "@mui/material/CircularProgress";
 import Snackbar from "@mui/material/Snackbar";

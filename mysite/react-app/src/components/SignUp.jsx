@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Analytics } from "aws-amplify";
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import InputLabel from "@mui/material/InputLabel";
@@ -16,7 +15,7 @@ import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import { Formik, ErrorMessage } from "formik";
-import { Auth, Hub } from "aws-amplify";
+
 import * as yup from "yup";
 import { FormHelperText } from "@mui/material";
 import Snackbar from "@mui/material/Snackbar";
@@ -90,15 +89,6 @@ export default function SignUpSide(props) {
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
 
-  Hub.listen("auth", ({ payload }) => {
-    const { event } = payload;
-    if (event === "autoSignIn") {
-      console.log("hub got giddy");
-      navigate("/landing");
-    } else if (event === "autoSignIn_failure") {
-      // redirect to sign in page
-    }
-  });
   const initialValues = {
     forename: formObject.forename || "",
     surname: formObject.surname || "",
@@ -119,12 +109,7 @@ export default function SignUpSide(props) {
     setError({ error: false });
     //setFormObject({ username: "", password: "" });
   };
-  // if logged in redirect to real page
-  Auth.currentAuthenticatedUser()
-    .then((user) => {
-      navigate("/landing");
-    })
-    .catch(console.log);
+
 
   const minDate = new Date(
     new Date(new Date().setFullYear(new Date().getFullYear() - 100)).setDate(1)
@@ -216,15 +201,7 @@ export default function SignUpSide(props) {
               ...formObject,
               ...values,
             });
-            try {
-              Auth.signIn(values.username, values.password)
-                .then((user) => {
-                  navigate("/landing");
-                })
-                .catch((error) => {
-                  setError({ error: true, message: error.message });
-                });
-            } catch (error) { }
+
           }}
         >
           {(props) => (

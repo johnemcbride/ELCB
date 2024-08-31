@@ -92,23 +92,24 @@ def update_member(request):
         try:
             # Parse the JSON data from the request
             data = json.loads(request.body)
+            print(data)
 
             # Get the current user's member object
             member = Member.objects.get(user=request.user)
 
             # Update member fields if they are present in the request
-            if 'date_of_birth' in data:
+            if 'dateOfBirth' in data:
                 try:
                     member.date_of_birth = datetime.datetime.strptime(
-                        data['date_of_birth'], '%m/%d/%Y').strftime('%Y-%m-%d')
+                        data['dateOfBirth'].split('T')[0], '%Y-%m-%d').strftime('%Y-%m-%d')
                 except ValueError:
                     return JsonResponse({'detail': 'Invalid date format. Please use MM/DD/YYYY.'}, status=400)
 
-            if 'first_name' in data:
-                member.first_name = data['first_name']
+            if 'forename' in data:
+                member.first_name = data['forename']
 
-            if 'last_name' in data:
-                member.last_name = data['last_name']
+            if 'surname' in data:
+                member.last_name = data['surname']
 
             if 'gender' in data:
                 if data['gender'].upper() in dict(Member.GENDER_CHOICES):

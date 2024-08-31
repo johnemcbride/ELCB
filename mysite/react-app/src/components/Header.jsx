@@ -50,18 +50,18 @@ export default function Header({ groups }) {
         {
           label: "Enrolments",
           icon: <PaidIcon />,
-          path: "/admin/enrolments",
+          path: "/cms",
         },
         {
           label: "Payment Holidays",
           icon: <SupportIcon />,
-          path: "/admin/holidays",
+          path: "/cms",
         },
 
         {
           label: "Members",
           icon: <PersonSearchIcon />,
-          path: "/admin/members",
+          path: "/cms",
         },
       ],
     },

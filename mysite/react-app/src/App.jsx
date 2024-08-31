@@ -1,7 +1,6 @@
 import React, { Suspense } from "react";
 import Terms from "./components/Terms.jsx";
 import ResetPassword from "./components/ResetPassword.jsx";
-import { Amplify } from "aws-amplify";
 import NewMemberLanding from "./components/NewMemberLanding.jsx";
 import SignIn from "./components/SignIn.jsx";
 import SignUp from "./components/SignUp.jsx";
@@ -10,10 +9,7 @@ import Footer from "./components/Footer.jsx";
 import SignOut from "./components/SignOut.jsx";
 import NewMemberProfile from "./components/NewMemberProfile.jsx";
 import { Routes, Route } from "react-router-dom";
-import Enrolments from "./pages/admin/Enrolments.jsx"
-import Members from "./pages/admin/Members.jsx"
-import Holidays from "./pages/admin/Holidays.jsx"
-import awsconfig from "./aws-exports";
+
 import { PrivateRoute } from "./components/PrivateRoute.jsx";
 import Loading from "./components/Loading.jsx";
 
@@ -21,8 +17,6 @@ import Loading from "./components/Loading.jsx";
 import { ErrorBoundary } from "react-error-boundary";
 
 
-
-Amplify.configure(awsconfig);
 
 
 const App = (props) => {
@@ -116,36 +110,7 @@ const App = (props) => {
                 }
               />
 
-              <Route
-                path="/admin/enrolments"
-                element={
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <PrivateRoute>
-                      <Enrolments {...props} />
-                    </PrivateRoute>
-                  </Suspense>
-                }
-              />
-              <Route
-                path="/admin/holidays"
-                element={
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <PrivateRoute>
-                      <Holidays {...props} />
-                    </PrivateRoute>
-                  </Suspense>
-                }
-              />
-              <Route
-                path="/admin/members"
-                element={
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <PrivateRoute>
-                      <Members {...props} />
-                    </PrivateRoute>
-                  </Suspense>
-                }
-              />
+
 
               <Route path="/signout" element={
                 <Suspense fallback={<div>Loading...</div>}>

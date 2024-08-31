@@ -1,100 +1,27 @@
-import React, { useState, useEffect, useLayoutEffect } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
-
-import { Analytics } from "aws-amplify";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import InputLabel from "@mui/material/InputLabel";
-import FormControl, { formControlClasses } from "@mui/material/FormControl";
-import FormLabel from "@mui/material/FormLabel";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import RadioGroup from "@mui/material/RadioGroup";
-import Radio from "@mui/material/Radio";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Typography from "@mui/material/Typography";
 import Toolbar from "@mui/material/Toolbar";
 import Link from "@mui/material/Link";
 import AppBar from "@mui/material/AppBar";
-import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
-import Checkbox from "@mui/material/Checkbox";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import Typography from "@mui/material/Typography";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { Formik, ErrorMessage, Field } from "formik";
-import { Auth, Hub } from "aws-amplify";
+import { Formik, ErrorMessage } from "formik";
 import * as yup from "yup";
-import { FormHelperText, TextareaAutosize } from "@mui/material";
-import CircularProgress from "@mui/material/CircularProgress";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
-import moment from "moment";
-import { LocalizationProvider } from "@mui/x-date-pickers";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import StepWizard from "react-step-wizard";
+;
 
-const ethnicGroups = [
-  "Prefer Not Say",
-  "Indian",
-  "Pakistani",
-  "Bangladeshi",
-  "Chinese",
-  "Any other Asian background",
-  "Caribbean",
-  "African",
-  "Any other Black, Black British, or Caribbean background",
-  "White and Black Caribbean",
-  "White and Black African",
-  "White and Asian",
-  "White - English, Welsh, Scottish, Northern Irish or British",
-  "White - Irish",
-  "White - Gypsy or Irish Traveller",
-  "White - Roma",
-  "Any other White background",
-  "Arab",
-  "Any other ethnic group",
-];
-
-String.prototype.capitalize = function (lower) {
-  return (lower ? this.toLowerCase() : this).replace(
-    /(?:^|\s|['`‘’.-])[^\x00-\x60^\x7B-\xDF](?!(\s|$))/g,
-    function (a) {
-      return a.toUpperCase();
-    }
-  );
-};
-
-function Copyright(props) {
-  return (
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      align="center"
-      {...props}
-    >
-      {"Copyright © "}
-      <Link color="inherit" href="https://www.eastlondoncommunityband.co.uk">
-        East London Community Band
-      </Link>{" "}
-      {new Date().getFullYear()}
-      {"."}
-    </Typography>
-  );
-}
 
 export default function ResetPassword() {
-  Analytics.record({ name: "resetPasswordVisit" });
-  const [error, setError] = useState({ error: false, message: "" });
-  const [formObject, setFormObject] = useState({});
 
-  const [step, setStep] = useState(1);
-  const navigate = useNavigate();
+  const [error, setError] = useState({ error: false, message: "" });
+
 
   const initialValues = {
     username: "",
@@ -107,20 +34,12 @@ export default function ResetPassword() {
     setError({ error: false });
     //setFormObject({ username: "", password: "" });
   };
-  // if logged in redirect to real page
-  Auth.currentAuthenticatedUser()
-    .then((user) => {
-      navigate("/landing");
-    })
-    .catch(console.log);
+
 
   const flashError = (error) => {
     setError({ error: true, message: error.message });
   };
 
-  const fontLoaded = document.fonts.load("12px 'Josefin Sans'");
-
-  const [isLoaded, setIsLoaded] = useState(false);
 
   return (
     <>
@@ -291,16 +210,16 @@ function Step1({
 }) {
   function handleForgotPassword() {
     setTouched({});
-    Auth.forgotPassword(values.username)
-      .then(() => {
-        props.nextStep();
-      })
-      .catch(() =>
-        flashError({
-          message:
-            "Unable to reset password.   Check that you got the username absolutely right.",
-        })
-      );
+    // Auth.forgotPassword(values.username)
+    //   .then(() => {
+    //     props.nextStep();
+    //   })
+    //   .catch(() =>
+    //     flashError({
+    //       message:
+    //         "Unable to reset password.   Check that you got the username absolutely right.",
+    //     })
+    //   );
   }
   return (
     <>
@@ -334,7 +253,7 @@ function Step1({
         sx={{ mt: 3, mb: 2 }}
         disabled={
           errors.username ||
-          (Object.keys(touched).length === 0 && touched.constructor === Object)
+            (Object.keys(touched).length === 0 && touched.constructor === Object)
             ? true
             : false
         }
@@ -368,17 +287,17 @@ function Step2({
   setErrors,
   ...props
 }) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
   console.log(props);
   function handleResetPassword() {
-    Auth.forgotPasswordSubmit(values.username, values.code, values.password)
-      .then(() => {
-        //
-        //  redirect to sign in page
-        //
-        props.nextStep();
-      })
-      .catch(flashError);
+    // Auth.forgotPasswordSubmit(values.username, values.code, values.password)
+    //   .then(() => {
+    //     //
+    //     //  redirect to sign in page
+    //     //
+    //     props.nextStep();
+    //   })
+    //   .catch(flashError);
   }
 
   return (
@@ -444,9 +363,9 @@ function Step2({
         sx={{ mt: 3, mb: 2 }}
         disabled={
           errors.code ||
-          errors.password ||
-          errors.confirmpassword ||
-          (Object.keys(touched).length === 0 && touched.constructor === Object)
+            errors.password ||
+            errors.confirmpassword ||
+            (Object.keys(touched).length === 0 && touched.constructor === Object)
             ? true
             : false
         }
