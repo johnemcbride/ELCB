@@ -43,14 +43,14 @@ export default defineConfig({
             output: {
                 chunkFileNames: undefined,
 
-                manualChunks: {
-                    // Ensure Amplify core modules are in the same chunk
-                    amplifyCore: [
-                        '@aws-amplify/core',
-                        '@aws-amplify/pubsub',
-                        '@aws-amplify/api-rest'
-                    ]
-                }
+                // manualChunks: {
+                //     // Ensure Amplify core modules are in the same chunk
+                //     amplifyCore: [
+                //         '@aws-amplify/core',
+                //         '@aws-amplify/pubsub',
+                //         '@aws-amplify/api-rest'
+                //     ]
+                // }
 
             },
         },

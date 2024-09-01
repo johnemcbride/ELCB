@@ -25,7 +25,7 @@ INSTALLED_APPS = [
     'jazzmin',
     'django_vite',
     'inertia',
-    'cms',
+    'prodcat',
     'frontend',
     'nested_admin',
     'django.contrib.admin',
