@@ -21,8 +21,8 @@ def hide_help_menu(request, menu_items):
 
 
 class BandMenuGroup(SnippetViewSetGroup):
-    menu_label = "Band"
-    menu_icon = "bars"  # change as required
+    menu_label = "Members"
+    menu_icon = "group"  # change as required
     menu_order = 0  # will put in 3rd place (000 being 1st, 100 2nd)
     items = (
         EnrolmentSnippetViewSet,

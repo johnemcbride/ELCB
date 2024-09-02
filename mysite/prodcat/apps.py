@@ -6,4 +6,4 @@ class ProdcatConfig(AppConfig):
     name = 'prodcat'
 
     def ready(self):
-        import prodcat.hooks  # Ensure the hooks are registered
+        import prodcat.wagtail_hooks  # Ensure the hooks are registered
