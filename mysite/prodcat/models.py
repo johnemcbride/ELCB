@@ -140,7 +140,8 @@ class BandPackageSnippetViewSet(SnippetViewSet):
     model = BandPackage
     menu_label = "Band Packages"
     icon = "folder"
-    list_display = ["name", "bands"]
+    list_display = ["name", "bands", "fullprice",
+                    "under30price", "siblingprice"]
     search_fields = ["name"]
 
 
