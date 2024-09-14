@@ -43,6 +43,8 @@ npm i
 npm i -g cdk
 cdk deploy
 BUCKET_NAME=johnbucket1a1a1a CLOUDFRONT_DISTRIBUTION_DOMAINNAME=localhost:8000 DEBUG=True AWS_REGION_NAME=eu-west-2 pipenv run python manage.py runserver --nostatic
+
+BUCKET_NAME=johnbucket1a1a1a CLOUDFRONT_DISTRIBUTION_DOMAINNAME=localhost:8000 DEBUG=True AWS_REGION_NAME=eu-west-2 pipenv run python manage.py shell --nostatic
 ```
 
 # To set secrets

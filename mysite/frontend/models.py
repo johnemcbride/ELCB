@@ -21,6 +21,8 @@ from django.utils import timezone
 from wagtail.snippets.models import register_snippet
 from wagtail.admin.panels import FieldPanel
 from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
+import json
+from prodcat.models import Band, BandPackage, LessonPackage, Instrument
 
 
 @register_setting
@@ -205,6 +207,44 @@ class ELCBPage(Page):
     class Meta:
         abstract = True
 
+    def get_band_options(self):
+
+        band_options = {"name": "Bands", "options":
+                        {"none":
+                         {
+                             "description": "No Bands (Lessons Only)",
+                             "id": "none",
+                             "price": 0,
+                             "available": True
+                         }
+                         }}
+
+        packages = BandPackage.objects.all()
+
+        for package in packages:
+            band_options[package.key] = {'description': package.name,
+                                         'id': package.key,
+                                         'price': package.fullprice,
+                                         'available': True}
+
+            band_options[package.key]['features'] = {
+                'includes': package.includes,
+                'options': []}
+
+            related_bands = package.related_bands.all()
+            for related_band in related_bands:
+                instruments = []
+                related_instruments = related_band.band.related_instruments.all()
+                for related_instrument in related_instruments:
+                    instruments.append(related_instrument.instruments.name)
+
+                band_options[package.key]['features']['options'].append(
+                    {"description": related_band.band.name,
+                     "instruments": instruments}
+                )
+
+        return band_options
+
     def clean(self):
         super().clean()
         if not self.pk and self.__class__.objects.exists():
@@ -214,6 +254,7 @@ class ELCBPage(Page):
     def get_context(self, request):
         context = super().get_context(request)
         context['csrf_token'] = get_token(request)
+        context['newProdCat'] = self.get_band_options()
 
         # Add additional context common to all ELCB pages here
         if request.user.is_authenticated:
