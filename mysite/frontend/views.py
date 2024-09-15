@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
-from .models import Member
+from .models import Member, Enrolment, Term, BandPackage, LessonPackage
 from django.contrib.auth.models import User
 from wagtail.models import Site
 import datetime
@@ -151,8 +151,45 @@ def logout_view(request):
 @login_required
 @require_POST
 def checkout(request):
-    print(json.dumps(json.load(request)))
+
+    json_body = json.loads(request.body)
+
+    # receives this
+    #
+    # {
+    #     bands: wizardState.bands,
+    #     lessons: wizardState.lessons,
+    #     giftAidConsent: wizardState.giftaidconsent ? true : false,
+    #     memberEnrolmentsId: state.userdata["custom:memberid"],
+    #     instrumentsPlayed: instrumentsPlayed
+    #   }
+    #
+    # 1. get member
+    # 2. create enrolment, with status pending
+    # 3. create stripe session
+
+    print(type(request.user))
+    print('user is ')
+    print(User.objects.get(username=request.user))
+    member = Member.objects.get(
+        user=User.objects.get(username=request.user))
+    print('member for useR:')
     print(request.user)
+    print('is')
+    print(member)
+
+    enrolment = Enrolment.objects.create(
+        member=member,
+        term=Term.get_current_term(),
+        status='pending',
+        bands=json_body['bands'],
+        bandDesc=BandPackage.objects.get(key=json_body['bands']).name,
+        bandPrice=BandPackage.objects.get(key=json_body['bands']).fullprice,
+        lessons=json_body['lessons'],
+        lessonsDesc=LessonPackage.objects.get(key=json_body['lessons']).name,
+        lessonsPrice=LessonPackage.objects.get(
+            key=json_body['lessons']).fullprice
+    )
 
     # Retrieve the Stripe keys from the Wagtail settings
 
@@ -166,11 +203,16 @@ def checkout(request):
         payment_method_types=['card'],
         line_items=[{
             'price_data': {
-                'currency': 'usd',
-                'product_data': {
-                    'name': 'T-shirt',
-                },
-                'unit_amount': 2000,
+                'currency': 'gbp',
+                'unit_amount': str(int(BandPackage.objects.get(key=json_body['bands']).fullprice*100)),
+                'product_data': {'name': BandPackage.objects.get(key=json_body['bands']).name}
+            },
+            'quantity': 1,
+        }, {
+            'price_data': {
+                'currency': 'gbp',
+                'unit_amount': str(int(LessonPackage.objects.get(key=json_body['lessons']).fullprice*100)),
+                'product_data': {'name': LessonPackage.objects.get(key=json_body['lessons']).name}
             },
             'quantity': 1,
         }],

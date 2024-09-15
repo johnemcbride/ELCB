@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from pathlib import Path
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -324,5 +325,40 @@ class Command(BaseCommand):
                 fullprice=lessons[lesson]['price'],
                 under30price=lessons[lesson]['price']/2,
                 siblingprice=lessons[lesson]['price']/4)
+
+        terms = [
+            {
+                'name': "23 Summer",
+                'startdate': "21/4/2023",
+                'enddate': "14/7/2023",
+            },
+            {
+                'name': "23 Autumn",
+                'startdate': "15/9/2023",
+                'enddate': "15/12/2023",
+            },
+            {
+                'name': "24 Spring",
+                'startdate': "5/1/2024",
+                'enddate': "22/3/2024",
+            },
+            {
+                'name': "24 Summer",
+                'startdate': "19/4/2024",
+                'enddate': "12/7/2024",
+            },
+            {
+                'name': "24 Autumn",
+                'startdate': "09/9/2024",
+                'enddate': "31/12/2024",
+            },
+        ]
+
+        for term in terms:
+            Term.objects.create(
+                name=term['name'],
+                start_date=datetime.strptime(
+                    term['startdate'], "%d/%m/%Y").strftime("%Y-%m-%d"),
+                end_date=datetime.strptime(term['enddate'], "%d/%m/%Y").strftime("%Y-%m-%d"))
         self.stdout.write(self.style.SUCCESS(
             'Successfully created the root page and child pages, and set up the default site.'))

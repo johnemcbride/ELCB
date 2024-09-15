@@ -70,6 +70,7 @@ class TermSnippetViewSet(SnippetViewSet):
     model = Term
     menu_label = "Terms"
     icon = "date"
+    list_display = ["name", "start_date", "end_date"]
 
 
 class MemberManager(models.Manager):
@@ -175,6 +176,42 @@ class Enrolment(models.Model):
         default='pending',
         help_text="The payment status of the enrolment"
     )
+    bands = models.CharField(
+        max_length=7,
+        help_text="The code of the band package selected",
+        null=True,
+        blank=True
+    )
+    bandDesc = models.CharField(
+        max_length=70,
+        help_text="The description band package selected",
+        null=True,
+        blank=True
+    )
+    bandPrice = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00)
+
+    lessons = models.CharField(
+        max_length=7,
+        help_text="The code of the lesson package selected",
+        null=True,
+        blank=True
+    )
+    lessonsDesc = models.CharField(
+        max_length=70,
+        help_text="The description lesson package selected",
+        null=True,
+        blank=True
+    )
+    lessonsPrice = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00)
+
+    userType = models.CharField(
+        max_length=20,
+        help_text="The rate applied",
+        null=True,
+        blank=True
+    )
 
     panels = [
         FieldPanel('member'),
@@ -194,6 +231,10 @@ class EnrolmentSnippetViewSet(SnippetViewSet):
     model = Enrolment
     menu_label = "Enrolments"
     icon = "doc-full"
+    list_display = ['__str__', 'bands', 'bandDesc', 'bandPrice', 'lessons',
+                    'lessonsDesc', 'enrolment_date', 'userType', 'member']
+    search_fields = ["member"]
+    list_filter = ["term", "member"]
 
 
 #
