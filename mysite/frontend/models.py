@@ -27,7 +27,10 @@ from prodcat.models import Band, BandPackage, LessonPackage, Instrument
 
 @register_setting
 class PaymentSettings(BaseSiteSetting):
-    stripe_id = models.CharField(max_length=255, help_text="Your Stripe ID")
+    stripe_id = models.CharField(
+        max_length=255, help_text="Your Stripe ID", null=True, blank=True)
+    stripe_webhook_secret = models.CharField(
+        max_length=255, help_text="Your Stripe WebHook Secret", null=True, blank=True)
     success_url = models.URLField(
         help_text="The URL to redirect to after a successful payment", null=True, blank=True)
     cancel_url = models.URLField(
@@ -35,6 +38,7 @@ class PaymentSettings(BaseSiteSetting):
 
     panels = [
         FieldPanel('stripe_id'),
+        FieldPanel('stripe_webhook_secret'),
         FieldPanel('success_url'),
         FieldPanel('cancel_url'),
     ]
@@ -213,6 +217,13 @@ class Enrolment(models.Model):
         blank=True
     )
 
+    stripeRef = models.CharField(
+        max_length=50,
+        help_text="The stripeRef",
+        null=True,
+        blank=True
+    )
+
     panels = [
         FieldPanel('member'),
         FieldPanel('term'),
@@ -232,7 +243,7 @@ class EnrolmentSnippetViewSet(SnippetViewSet):
     menu_label = "Enrolments"
     icon = "doc-full"
     list_display = ['__str__', 'bands', 'bandDesc', 'bandPrice', 'lessons',
-                    'lessonsDesc', 'enrolment_date', 'userType', 'member']
+                    'lessonsDesc', 'enrolment_date', 'userType', 'member', 'stripeRef']
     search_fields = ["member"]
     list_filter = ["term", "member"]
 

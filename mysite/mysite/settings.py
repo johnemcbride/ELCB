@@ -18,7 +18,8 @@ def str_to_bool(value: str) -> bool:
 
 DEBUG = str_to_bool(os.environ.get('DEBUG', "False"))
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['http://localhost']
+CSRF_TRUSTED_ORIGINS = ['http://localhost',
+                        'https://*.ngrok-free.app']
 WHITENOISE_MAX_AGE = 60*60*24
 STATIC_URL = "/static/"
 INSTALLED_APPS = [

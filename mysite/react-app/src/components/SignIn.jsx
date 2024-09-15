@@ -71,7 +71,7 @@ export default function SignIn(props) {
       console.log(JSON.stringify(results));
       if (user !== null) {
         console.log('Trying router.visit')
-        router.visit("/landing/");
+        router.visit("/landing");
       } else {
         console.log(document.fonts.load("12px 'Josefin Sans'"));
         setIsLoaded(true);

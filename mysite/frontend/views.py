@@ -10,6 +10,7 @@ import stripe
 from django.http import JsonResponse
 import json
 from .models import PaymentSettings
+from django.views.decorators.csrf import csrf_exempt
 
 from django.views.decorators.http import require_POST
 
@@ -31,6 +32,53 @@ def login_view(request):
             return JsonResponse({'detail': 'Invalid username or password'}, status=403)
 
     return JsonResponse({'detail': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+@require_POST
+def stripe_callback(request):
+    print('hi')
+    if request.method == 'POST':
+
+        current_site = Site.find_for_request(request)
+        site_settings = PaymentSettings.for_site(current_site)
+        webhook_secret = site_settings.stripe_webhook_secret
+        # Get the Stripe webhook secret
+
+        # Read the incoming payload from Stripe
+        payload = request.body
+        sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+        event = None
+
+        try:
+            # Verify the payload signature to ensure it's from Stripe
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, webhook_secret
+            )
+        except ValueError as e:
+            # Invalid payload
+            return JsonResponse({'error': str(e)}, status=400)
+        except stripe.error.SignatureVerificationError as e:
+            # Invalid signature
+            return JsonResponse({'error': 'Invalid signature'}, status=400)
+
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            customer_reference_id = session['client_reference_id']
+            payment_status = session['payment_status']
+
+            if payment_status == 'paid':
+                try:
+                    # Update the corresponding Enrolment object
+                    enrolment = Enrolment.objects.get(
+                        id=customer_reference_id)
+                    enrolment.status = 'paid'
+                    enrolment.save()
+                    return JsonResponse({'message': 'Enrolment updated successfully'}, status=200)
+                except Enrolment.DoesNotExist:
+                    return JsonResponse({'error': 'Enrolment not found'}, status=404)
+
+    return JsonResponse({'status': 'success'}, status=200)
 
 
 def signup_view(request):
@@ -152,6 +200,7 @@ def logout_view(request):
 @require_POST
 def checkout(request):
 
+    print('In checkout')
     json_body = json.loads(request.body)
 
     # receives this
@@ -168,16 +217,14 @@ def checkout(request):
     # 2. create enrolment, with status pending
     # 3. create stripe session
 
-    print(type(request.user))
-    print('user is ')
-    print(User.objects.get(username=request.user))
     member = Member.objects.get(
         user=User.objects.get(username=request.user))
-    print('member for useR:')
-    print(request.user)
-    print('is')
+
     print(member)
 
+    #
+    #  handle repeat request of enrolment....
+    #
     enrolment = Enrolment.objects.create(
         member=member,
         term=Term.get_current_term(),
@@ -193,10 +240,15 @@ def checkout(request):
 
     # Retrieve the Stripe keys from the Wagtail settings
 
+    print('before getting settings')
     # Retrieve the current site based on the request
     current_site = Site.find_for_request(request)
     site_settings = PaymentSettings.for_site(current_site)
     stripe.api_key = site_settings.stripe_id
+
+    print('Got settings:')
+    print(current_site)
+    print(site_settings)
 
     # Create a Stripe Checkout Session
     session = stripe.checkout.Session.create(
@@ -219,6 +271,7 @@ def checkout(request):
         mode='payment',
         success_url=site_settings.success_url,
         cancel_url=site_settings.cancel_url,
+        client_reference_id=enrolment.id
     )
 
     # todo - stripe
