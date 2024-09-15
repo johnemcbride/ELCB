@@ -47,24 +47,15 @@ class InstrumentSnippetViewSet(SnippetViewSet):
     search_fields = ["name"]
 
 
-class Lesson(ClusterableModel):
-    name = models.CharField(max_length=255)
-
-    content_panels = [
-        FieldPanel('name'),
-
-    ]
-
- # Combine panels into tabs
-    edit_handler = TabbedInterface([
-        ObjectList(content_panels, heading="Content"),
-    ])
-
-    def __str__(self):
-        return self.name
-
-
 class LessonPackage(ClusterableModel):
+    def generate_band_key():
+        # Get the last created MyModel instance to determine the next number
+        last_entry = LessonPackage.objects.order_by('id').last()
+        last_number = int(last_entry.id)
+        new_number = last_number + 1
+        # Format the number as '001', '002', etc.
+        return f'lesson{new_number:03d}'
+
     name = models.CharField(max_length=255)
     fullprice = models.DecimalField(
         max_digits=10, decimal_places=2, default=0.00)
@@ -73,9 +64,15 @@ class LessonPackage(ClusterableModel):
     siblingprice = models.DecimalField(
         max_digits=10, decimal_places=2, default=0.00)
 
+    key = models.CharField(
+        max_length=5,
+        unique=True,
+        default=generate_band_key,
+        help_text="A unique key like 'all', 'small', or 'none'"
+    )
     content_panels = [
         FieldPanel('name'),
-
+        FieldPanel('key'),  # Add the key field to the panels
     ]
 
     cost_panels = [
@@ -85,39 +82,14 @@ class LessonPackage(ClusterableModel):
 
     ]
 
-    # Panels for the "Related Instruments" tab
-    related_lessons_panels = [
-        InlinePanel('related_lessons',
-                    heading="Related Lessons", label="Related Lessons"),
-    ]
-
  # Combine panels into tabs
     edit_handler = TabbedInterface([
         ObjectList(content_panels, heading="Content"),
-        ObjectList(related_lessons_panels, heading="Related Lessons"),
         ObjectList(cost_panels, heading="Cost"),
     ])
 
     def __str__(self):
         return self.name
-
-    def lessons(self):
-        # return " ".join([str(ri.bands.name) for ri in self.related_bands.all()])
-        return format_html("<br>".join([str(ri.lessons.name) for ri in self.related_lessons.all()]))
-
-
-class LessonPackageRelatedLesson(Orderable):
-    page = ParentalKey(LessonPackage, on_delete=models.CASCADE,
-                       related_name='related_lessons')
-    lessons = models.ForeignKey(
-        Lesson, on_delete=models.CASCADE, related_name='+', null=True, blank=True)
-
-    panels = [
-        FieldPanel('lessons'),
-    ]
-
-    class Meta:
-        unique_together = ('page', 'lessons')
 
 
 class Band(ClusterableModel):
@@ -155,14 +127,6 @@ class BandSnippetViewSet(SnippetViewSet):
     menu_label = "Bands"
     icon = "cogs"
     list_display = ["name", "instruments"]
-    search_fields = ["name"]
-
-
-class LessonSnippetViewSet(SnippetViewSet):
-    model = Lesson
-    menu_label = "Lessons"
-    icon = "cogs"
-    list_display = ["name"]
     search_fields = ["name"]
 
 
@@ -282,7 +246,7 @@ class LessonPackageSnippetViewSet(SnippetViewSet):
     model = LessonPackage
     menu_label = "Lesson Packages"
     icon = "resubmit"
-    list_display = ["name", "lessons", "fullprice",
+    list_display = ["name", "key", "fullprice",
                     "under30price", "siblingprice"]
     search_fields = ["name"]
 

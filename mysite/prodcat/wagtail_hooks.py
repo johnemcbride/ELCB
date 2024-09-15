@@ -1,5 +1,5 @@
 from wagtail.snippets.views.snippets import SnippetViewSetGroup
-from .models import InstrumentSnippetViewSet, BandSnippetViewSet, BandPackageSnippetViewSet,  LessonPackageSnippetViewSet, LessonSnippetViewSet
+from .models import InstrumentSnippetViewSet, BandSnippetViewSet, BandPackageSnippetViewSet,  LessonPackageSnippetViewSet
 
 from wagtail.snippets.models import register_snippet
 # Define the custom Menu class for the "Band" submen
@@ -21,7 +21,7 @@ class ProdCatMenuGroup(SnippetViewSetGroup):
         InstrumentSnippetViewSet,
 
         LessonPackageSnippetViewSet,
-        LessonSnippetViewSet,
+
 
 
 

@@ -18,7 +18,8 @@ from prodcat.models import (
     Instrument,
     BandPackage,
     BandRelatedInstrument,
-    BandPackageRelatedBand
+    BandPackageRelatedBand,
+    LessonPackage
 
 )
 
@@ -43,6 +44,7 @@ class Command(BaseCommand):
         Instrument.objects.all().delete()
         BandPackageRelatedBand.objects.all().delete()
         BandRelatedInstrument.objects.all().delete()
+        LessonPackage.objects.all().delete()
 
         print('Adding instruments')
 
@@ -288,8 +290,39 @@ class Command(BaseCommand):
                     page=new_package, band=band, sort_order=sort_order)
                 sort_order = sort_order + 1
         new_package = BandPackage.objects.create(
-            name="No Bands (lessons only)", key="none", fullprice=0, under30price=0, siblingprice=0)
+            name="No Bands (Lessons Only)", key="none", fullprice=0, under30price=0, siblingprice=0)
         sort_order = 0
 
+        lessons = {"none": {
+            "description": "No lessons",
+            "id": "none",
+            "price": 0,
+            "available": True
+        },
+            "one": {
+            "description": "One 15 min lesson per week",
+            "id": "one",
+            "price": 116,
+            "available": True
+        },
+            "two": {
+            "description": "Two 15 min lessons per week",
+            "id": "two",
+            "price": 232,
+            "available": True
+        },
+            "three": {
+            "description": "Three 15 min lessons per week",
+            "id": "three",
+            "price": 348,
+            "available": True
+        }}
+        for lesson in lessons:
+            new_lesson = LessonPackage.objects.create(
+                key=lesson,
+                name=lessons[lesson]['description'],
+                fullprice=lessons[lesson]['price'],
+                under30price=lessons[lesson]['price']/2,
+                siblingprice=lessons[lesson]['price']/4)
         self.stdout.write(self.style.SUCCESS(
             'Successfully created the root page and child pages, and set up the default site.'))
