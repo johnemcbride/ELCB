@@ -10,6 +10,23 @@ mimetypes.add_type("image/svg+xml", ".svgz", True)
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-6kk)r$tlbt#8g@9*=z#)ybh&85jdn+5gp=#*91o8*$$d=c192a'
 
+# email
+EMAIL_BACKEND = 'django_ses.SESBackend'
+
+# These are optional if you are using AWS IAM Roles https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html
+# AWS_ACCESS_KEY_ID = 'YOUR-ACCESS-KEY-ID'
+# AWS_SECRET_ACCESS_KEY = 'YOUR-SECRET-ACCESS-KEY'
+# https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-files.html
+# AWS_SESSION_PROFILE = 'YOUR-PROFILE-NAME'
+# Additionally, if you are not using the default AWS region of us-east-1,
+# you need to specify a region, like so:
+AWS_SES_REGION_NAME = 'eu-west-2'
+AWS_SES_REGION_ENDPOINT = 'email.eu-west-2.amazonaws.com'
+WAGTAILADMIN_NOTIFICATION_FROM_EMAIL = 'john@johntech.net'
+DEFAULT_FROM_EMAIL = 'john@johntech.net'
+# If you want to use the SESv2 client
+USE_SES_V2 = True
+
 
 def str_to_bool(value: str) -> bool:
     """Convert a string representation of truth to boolean."""

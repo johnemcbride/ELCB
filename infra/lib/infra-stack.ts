@@ -63,7 +63,7 @@ export class InfraStack extends cdk.Stack {
         AssociateAddressPolicy: new iam.PolicyDocument({
           statements: [
             new iam.PolicyStatement({
-              actions: ["ec2:AssociateAddress"],
+              actions: ["ec2:AssociateAddress", "ses:SendEmail"],
               resources: ["*"], // You can specify the specific resource if needed
             }),
           ],
@@ -136,6 +136,7 @@ export class InfraStack extends cdk.Stack {
       userData: ec2.UserData.custom(userDataScript),
       minCapacity: 1,
       maxCapacity: 1,
+      spotPrice: "0.01", // Set the maximum Spot price you are willing to pay
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC }, // Ensure the instances are in public subnets
     });
 

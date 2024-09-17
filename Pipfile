@@ -18,6 +18,7 @@ gunicorn = "*"
 django-vite = "*"
 inertia-django = "*"
 stripe = "*"
+django-ses = "*"
 
 [dev-packages]
 boto3 = "*"
