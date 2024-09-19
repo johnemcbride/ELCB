@@ -108,6 +108,9 @@ export class InfraStack extends cdk.Stack {
       -e BUCKET_NAME=johnbucket1a1a1a\
       -e CLOUDFRONT_DISTRIBUTION_DOMAINNAME=johntech.net\
       984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest
+
+    #  docker run -d -p 80:80 -p 443:443 -e LITESTREAM_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -e LITESTREAM_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY   -e AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN \
+      -e AWS_REGION_NAME=eu-west-2  -e REPLICA_URL=s3://johnbucket1a1a1a/db.sqlite3 -e BUCKET_NAME=johnbucket1a1a1a -e CLOUDFRONT_DISTRIBUTION_DOMAINNAME=johntech.net 984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest
     # Associate Elastic IP
     INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
     aws ec2 associate-address --instance-id $INSTANCE_ID --allocation-id ${eip.attrAllocationId} --region ${this.region}

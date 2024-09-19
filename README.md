@@ -91,3 +91,28 @@ podman push 984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest
 ### increase podman memory fo th rizzla
 
 podman machine set --cpus 4 --memory 5012
+
+### data transfer in from existing
+
+target aws account is
+
+984617344736
+
+source table is :
+arn:aws:dynamodb:eu-west-2:228447865234:table/Enrolment-r6l2mc5nzbdpfans746zcczq5e-prod
+arn:aws:dynamodb:eu-west-2:228447865234:table/Member-r6l2mc5nzbdpfans746zcczq5e-prod
+
+enable to assume role:
+
+{
+"Version": "2012-10-17",
+"Statement": [
+{
+"Effect": "Allow",
+"Action": "sts:AssumeRole",
+"Resource": "arn:aws:iam::228447865234:role/x-account-admin"
+}
+]
+}
+
+aws sts assume-role --role-arn arn:aws:iam::228447865234:role/x-account-admin --role-session-name dynamo-access --profile elcb
