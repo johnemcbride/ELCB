@@ -150,11 +150,11 @@ class BandRelatedInstrument(Orderable):
 class BandPackage(ClusterableModel):
 
     def generate_band_key():
-        # Get the last created MyModel instance to determine the next number
+        # Get the last created BandPackage instance to determine the next number
         last_entry = BandPackage.objects.order_by('id').last()
-        last_number = int(last_entry.id)
+        last_number = int(last_entry.id) if last_entry else 0
         new_number = last_number + 1
-        # Format the number as '001', '002', etc.
+        # Format the number as 'band001', 'band002', etc.
         return f'band{new_number:03d}'
 
     name = models.CharField(max_length=255)
