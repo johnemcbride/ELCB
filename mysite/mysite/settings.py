@@ -68,8 +68,6 @@ INSTALLED_APPS = [
     'modelcluster',
     'taggit',
     'storages',
-    'crispy_forms',
-    'crispy_forms_gds',
     'wagtail.contrib.settings',
 ]
 
