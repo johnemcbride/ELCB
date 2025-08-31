@@ -85,6 +85,16 @@ export class InfraStack extends cdk.Stack {
             }),
           ],
         }),
+        AssumeXAcctAdminPolicy: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              sid: "AllowAssumeXAcctAdmin",
+              effect: iam.Effect.ALLOW,
+              actions: ["sts:AssumeRole"],
+              resources: ["arn:aws:iam::228447865234:role/x-account-admin"],
+            }),
+          ],
+        }),
       },
     });
 
