@@ -49,11 +49,11 @@ class InstrumentSnippetViewSet(SnippetViewSet):
 
 class LessonPackage(ClusterableModel):
     def generate_band_key():
-        # Get the last created MyModel instance to determine the next number
+        # Get the last created LessonPackage instance to determine the next number
         last_entry = LessonPackage.objects.order_by('id').last()
-        last_number = int(last_entry.id)
+        last_number = int(last_entry.id) if last_entry else 0
         new_number = last_number + 1
-        # Format the number as '001', '002', etc.
+        # Format the number as 'lesson001', 'lesson002', etc.
         return f'lesson{new_number:03d}'
 
     name = models.CharField(max_length=255)
