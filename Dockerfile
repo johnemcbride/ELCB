@@ -58,6 +58,7 @@ RUN chmod 600 /etc/nginx/ssl/* && chown nginx:nginx /etc/nginx/ssl/*
 WORKDIR /app/react-app
 RUN npm i
 RUN npm run vite-build
+RUN mkdir -p /app/data
 
 # Create and set the working directory
 WORKDIR /app
