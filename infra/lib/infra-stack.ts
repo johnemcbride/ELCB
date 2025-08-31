@@ -151,6 +151,14 @@ aws ec2 associate-address --instance-id $INSTANCE_ID --allocation-id ${eip.attrA
       maxCapacity: 1,
   spotPrice: "0.025", // Set the maximum Spot price for t4g.small
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC }, // Ensure the instances are in public subnets
+      blockDevices: [
+        {
+          deviceName: '/dev/sda1',
+          volume: autoscaling.BlockDeviceVolume.ebs(
+            60, 
+            {deleteOnTermination: true}),
+        },
+      ],
     });
 
     new cdk.CfnOutput(this, "EIP_Output", {
