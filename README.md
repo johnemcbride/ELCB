@@ -6,6 +6,11 @@
 
 podman exec -it elcb_backend_1 /bin/bash
 
+# local deploy env
+aws configure sso
+
+
+eval "$(aws configure export-credentials --profile default  --format env)"
 # Set up fresh codespace
 
 ```

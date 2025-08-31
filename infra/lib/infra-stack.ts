@@ -33,8 +33,8 @@ export class InfraStack extends cdk.Stack {
     });
     securityGroup.addIngressRule(
       ec2.Peer.anyIpv4(),
-      ec2.Port.tcp(80),
-      "allow http access from the world"
+      ec2.Port.tcp(3000),
+      "allow dokploy access from the world"
     );
     securityGroup.addIngressRule(
       ec2.Peer.anyIpv4(),
@@ -90,35 +90,45 @@ export class InfraStack extends cdk.Stack {
 
     // Allocate an Elastic IP and associate it with the instance
     const eip = new ec2.CfnEIP(this, "EIP");
-    // User Data script to install Docker and run the container
-    const userDataScript = `#!/bin/bash
-    sudo yum update -y
-    sudo amazon-linux-extras install docker -y
-    sudo service docker start
-    sudo usermod -a -G docker ec2-user
-    sudo $(aws ecr get-login --no-include-email --region ${this.region})
-    aws ecr get-login-password --region eu-west-2  | docker login --username AWS --password-stdin 984617344736.dkr.ecr.eu-west-2.amazonaws.com
-    docker pull 984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest
-    docker run -d -p 80:80 -p 443:443 \
-      -e LITESTREAM_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-      -e LITESTREAM_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-      -e AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN \
-      -e AWS_REGION_NAME=eu-west-2 \
-      -e REPLICA_URL=${replicaUrl}\
-      -e BUCKET_NAME=johnbucket1a1a1a\
-      -e CLOUDFRONT_DISTRIBUTION_DOMAINNAME=johntech.net\
-      984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest
+  // User Data script to install Dokploy and associate Elastic IP
+  const userDataScript = `#!/bin/bash
+ apt-get update -y
+ apt-get install -y unzip
 
-    #  docker run -d -p 80:80 -p 443:443 -e LITESTREAM_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -e LITESTREAM_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY   -e AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN \
-      -e AWS_REGION_NAME=eu-west-2  -e REPLICA_URL=s3://johnbucket1a1a1a/db.sqlite3 -e BUCKET_NAME=johnbucket1a1a1a -e CLOUDFRONT_DISTRIBUTION_DOMAINNAME=johntech.net 984617344736.dkr.ecr.eu-west-2.amazonaws.com/elcb:latest
-    # Associate Elastic IP
-    INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
-    aws ec2 associate-address --instance-id $INSTANCE_ID --allocation-id ${eip.attrAllocationId} --region ${this.region}
-    `;
+  # Install AWS CLI v2 (ARM/aarch64)
+  curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
+  unzip awscliv2.zip
+  sudo ./aws/install
 
-    const ami = ec2.MachineImage.genericLinux({
-      "eu-west-2": "ami-07eac86c1aa994cde", // Replace with the actual AMI ID
-    });
+   # Associate Elastic IP
+  # Avoid proxies for the metadata IP
+export NO_PROXY="169.254.169.254"
+export no_proxy="169.254.169.254"
+
+TOKEN="$(curl -fsSL -X PUT 'http://169.254.169.254/latest/api/token' \
+  -H 'X-aws-ec2-metadata-token-ttl-seconds: 21600')"
+
+INSTANCE_ID="$(curl -fsSL -H "X-aws-ec2-metadata-token: $TOKEN" \
+  http://169.254.169.254/latest/meta-data/instance-id)"
+
+echo "INSTANCE_ID=$INSTANCE_ID"
+
+aws ec2 associate-address --instance-id $INSTANCE_ID --allocation-id ${eip.attrAllocationId} --region ${this.region}
+
+
+  # Install Dokploy (official script)
+  curl -sSL https://dokploy.com/install.sh  | sh
+
+  # Dokploy is now installed. You can use dokploy CLI to manage deployments.
+  # Example: dokploy login, dokploy deploy, etc.
+  # See https://docs.dokploy.com/ for usage instructions.
+
+   `;
+
+    const ami = ec2.MachineImage.fromSsmParameter(
+      "/aws/service/canonical/ubuntu/server/24.04/stable/current/arm64/hvm/ebs-gp3/ami-id",
+      { os: ec2.OperatingSystemType.LINUX }
+    );
     // const instance = new ec2.Instance(this, "Instance", {
     //   vpc,
     //   instanceType: new ec2.InstanceType("t4g.micro"),
@@ -132,14 +142,14 @@ export class InfraStack extends cdk.Stack {
     // Auto Scaling Group
     const asg = new autoscaling.AutoScalingGroup(this, "ASG", {
       vpc,
-      instanceType: new ec2.InstanceType("t4g.micro"),
+  instanceType: new ec2.InstanceType("t4g.small"),
       machineImage: ami,
       securityGroup,
       role,
       userData: ec2.UserData.custom(userDataScript),
       minCapacity: 1,
       maxCapacity: 1,
-      spotPrice: "0.01", // Set the maximum Spot price you are willing to pay
+  spotPrice: "0.025", // Set the maximum Spot price for t4g.small
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC }, // Ensure the instances are in public subnets
     });
 
