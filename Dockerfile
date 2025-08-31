@@ -69,4 +69,4 @@ EXPOSE 80
 EXPOSE 8000
 
 # Command to start Nginx, Litestream, and the application
-CMD ["/bin/bash", "-c", "nginx && litestream replicate -exec /app/entrypoint.sh -config /app/litestream.yml"]
+CMD ["/bin/bash", "-c", "nginx &&  /app/entrypoint.sh "]
