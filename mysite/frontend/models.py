@@ -348,14 +348,19 @@ class ELCBPage(Page):
 
             # load details of primary member
             primary_member = Member.objects.for_user(request.user)
-            context['member'] = {
-                'forename': primary_member[0].first_name,
-                'surname': primary_member[0].last_name,
-                'dateOfBirth': primary_member[0].date_of_birth,
-                'gender': primary_member[0].gender,
-                'ethnicity': primary_member[0].get_ethnicity_display(),
-                'siblings': primary_member[0].siblings}
-            context['userdata'] = {'custom:memberid': primary_member[0].id}
+            if primary_member.exists():
+                context['member'] = {
+                    'forename': primary_member[0].first_name,
+                    'surname': primary_member[0].last_name,
+                    'dateOfBirth': primary_member[0].date_of_birth,
+                    'gender': primary_member[0].gender,
+                    'ethnicity': primary_member[0].get_ethnicity_display(),
+                    'siblings': primary_member[0].siblings
+                }
+                context['userdata'] = {'custom:memberid': primary_member[0].id}
+            else:
+                context['member'] = None
+                context['userdata'] = None
         else:
             user_data = None
             context['member'] = None
